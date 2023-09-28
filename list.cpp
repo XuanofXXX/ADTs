@@ -2,7 +2,7 @@
  * @Author: XiaChunxuan xiachunxuan@ruc.edu.cn
  * @Date: 2023-09-14 20:25:43
  * @LastEditors: XiaChunxuan xiachunxuan@ruc.edu.cn
- * @LastEditTime: 2023-09-27 14:13:50
+ * @LastEditTime: 2023-09-28 20:12:20
  * @FilePath: /2023-2024_S3/数据结构1/ADTs/list.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -75,6 +75,9 @@ private:
 public:
   List(){
     data = new Elemtype[dataCapacity];
+    if (data == nullptr){
+      throw "Failed to allocate memory";
+    }
   }
 
   void clear(){
@@ -82,6 +85,9 @@ public:
     dataCapacity = 8;
     delete[] data;
     data = new Elemtype[dataCapacity];
+    if (data == nullptr){
+      throw "Failed to allocate memory";
+    }
   }
 
   // ~List(){
@@ -105,6 +111,9 @@ public:
   int newCapacity = capacity() * extendRatio;
   Elemtype *tmp = data;
   data = new Elemtype[newCapacity];
+  if (data == nullptr){
+    throw "Failed to allocate memory";
+  }
   for (int i = 0; i < size(); i++){
     data[i] = tmp[i];
   }
@@ -278,11 +287,9 @@ struct Node {
 // 定义链表类
 template <typename Elemtype>
 class LinkList {
-private:
+public:
   Node<Elemtype>* head;
   int dataSize;
-
-public:
   LinkList() : head(new Node<Elemtype>()) ,dataSize(0) {}
   
   int size(){
@@ -299,6 +306,9 @@ public:
 
   void prepend(Elemtype val) {
     Node<Elemtype>* newNode = new Node<Elemtype>(val);
+    if (newNode == nullptr){
+      throw "Failed to allocate memory";
+    }
     newNode->next = head->next;
     head->next = newNode;
     dataSize ++;
@@ -314,6 +324,9 @@ public:
       cur = cur->next;
     }
     Node<Elemtype>* newNode = new Node<Elemtype>(val);
+    if (newNode == nullptr){
+      throw "Failed to allocate memory";
+    }
     cur->next = newNode;
     dataSize ++;
   }
@@ -323,14 +336,19 @@ public:
       std::cout << "None" << std::endl;
       return ;
     }
+    
+    int maxtimes =10;
     Node<Elemtype>* cur = head;
     cur = cur->next;
+    int time = 1;
 
-    while(cur){
+    while(cur && time <= maxtimes){
+      time ++;
       std::cout << cur->data << " -> ";
       cur = cur->next;
     }
-    std::cout <<"None" << std::endl;
+    if (dataSize > maxtimes) std::cout <<"... -> None" << std::endl;
+    else std::cout <<"None" << std::endl; 
     
     // for (int i= 0 ;i< dataSize;i++){
     //   std::cout << cur->data << " -> ";
@@ -344,6 +362,9 @@ public:
   void insert(int pos, Elemtype val){
     Node<Elemtype>* cur = head;
     Node<Elemtype>* newNode = new Node<Elemtype>(val);
+    if (newNode == nullptr){
+      throw "Failed to allocate memory";
+    }
     while (pos --){
       cur = cur->next;
     }
@@ -405,19 +426,23 @@ public:
   }
 
   bool judgeHuiwen(){
-    Node<Elemtype>* cur = head;
     if (dataSize <= 1) return true;
-    cur = cur->next;
-    Node<Elemtype>* prev = nullptr;
-    Node<Elemtype>* next = nullptr;
+    Node<Elemtype>* newHead = new Node<Elemtype>();
+    if (newHead == nullptr){
+      throw "Failed to allocate memory";
+    }
+    Node<Elemtype>* cur = head->next;
     while (cur){
-      next = cur->next;
-      cur->next = prev;
-      prev = cur;
-      cur = next;
+      Node<Elemtype>* newNode = new Node<Elemtype>(cur->data);
+      if (newNode == nullptr){
+        throw "Failed to allocate memory";
+      }
+      newNode->next = newHead;
+      newHead = newNode;
+      cur = cur->next;
     }
     Node<Elemtype>* cur1 = head->next;
-    Node<Elemtype>* cur2 = prev;
+    Node<Elemtype>* cur2 = newHead;
     while (cur1){
       if (cur1->data != cur2->data) return false;
       cur1 = cur1->next;
@@ -435,6 +460,9 @@ public:
     while (cur_other){
 
       Node<Elemtype>* newNode = new Node<Elemtype>(cur_other->data);
+      if (newNode == nullptr){
+        throw "Failed to allocate memory";
+      }
       cur->next = newNode;
 
       cur = cur->next;
@@ -453,6 +481,9 @@ public:
 		}
 		delete head;
     head = new Node<Elemtype>();
+    if (head == nullptr){
+      throw "Failed to allocate memory";
+    }
     dataSize = 0;
   }
   /*
@@ -490,15 +521,19 @@ public:
     return *this;
   }
 
+  void Destory(){
+    Node<Elemtype>* cur = head;
+
+    while (cur && cur->next) {
+      Node<Elemtype>* next = cur->next;
+      delete cur;
+      cur = next;
+    }
+  }
+
 
   // ~LinkList() {
-  //   Node<Elemtype>* cur = head;
-
-  //   while (cur && cur->next) {
-  //     Node<Elemtype>* next = cur->next;
-  //     delete cur;
-  //     cur = next;
-  //   }
+    
   //   // delete head;
   // }
 };
