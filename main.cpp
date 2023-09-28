@@ -2,7 +2,7 @@
  * @Author: XiaChunxuan xiachunxuan@ruc.edu.cn
  * @Date: 2023-09-26 12:41:37
  * @LastEditors: XiaChunxuan xiachunxuan@ruc.edu.cn
- * @LastEditTime: 2023-09-27 12:47:13
+ * @LastEditTime: 2023-09-28 17:27:25
  * @FilePath: /2023-2024_S3/数据结构1/ADTs/main.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -30,6 +30,7 @@ void submenu(){
   std::cout << "5: 判断是否是回文串" << std::endl;
   std::cout << "6: 计算字符串中单词的个数" << std::endl;
   std::cout << "7: 销毁字符串" << std::endl;
+  std::cout << "8: 计算字符串单词个数" << std::endl;
   std::cout << "0: 退出" << std::endl;
 }
 
@@ -113,7 +114,6 @@ void ope_shell(){
     switch (ope)
     {
       case 1:  // 输入
-        // DEBUG 释放两次内存。
         getchar();
         std::cout << "请输入新字符串： ";
         std::getline(std::cin,s);
@@ -159,11 +159,11 @@ void ope_shell(){
 
       case 3:  // 合并字符串
         num1 = -1; num2 = -1;
-        while (num1 < 0 || num2 < 0 && num1 >= Lists.size() || num2 >= Lists.size() || num1 == num2){
-          for (int i = 0 ; i< Lists.size();i++){
-            std::cout << i << ": ";
-            Lists[i].display();
-          }
+        for (int i = 0 ; i< Lists.size();i++){
+          std::cout << i << ": ";
+          Lists[i].display();
+        }
+        while (num1 < 0 || num2 < 0 || num1 >= Lists.size() || num2 >= Lists.size() || num1 == num2){
           std::cout << "请输入合并的两个字符串序号(s1 <- s2): ";
           std::cin >> num1 >> num2;
         }
@@ -245,6 +245,9 @@ void ope_shell(){
               l2.clear();
               Lists.remove(num1);
               break;
+            case 8:  // 显示单词个数
+              std::cout << "这个字符串单词个数为: " << l2.size();
+              break;
             default:
               std::cout << "不存在此命令，请重新输入" << std::endl;
               break;
@@ -272,12 +275,12 @@ void ope_file(){
   std::string line;
   while (std::getline(inputFile, line)){
     std::istringstream iss(line);
-    if (!have_readope){
-      if (iss >> ope){
-        have_readope = true;
-      }else{
-        throw "Irregular file in ope";
+    if (!have_readope){  // 如果还没有读取操作符，就读取操作符
+      if (iss >> ope){   
+        if (ope == 0)  have_readope = false;
+        else have_readope = true;
       }
+      else throw "Irregular file in ope";
       continue;
     }
     have_readope = false;
@@ -323,27 +326,25 @@ void ope_file(){
           break;
 
         case 3:  // 合并字符串
-          num1 = -1; num2 = -1;
-          while (num1 < 0 || num2 < 0 && num1 >= Lists.size() || num2 >= Lists.size() || num1 == num2){
-            for (int i = 0 ; i< Lists.size();i++){
-              std::cout << i << ": ";
-              Lists[i].display();
-            }
-            int num1, num2;
-            if (is >> num1 >> num2){
-              LinkList<std::string> merge1 = Lists[num1];
-              LinkList<std::string> merge2 = Lists[num2];
-              // std::cout << merge1 << std::endl;
-              // std::cout << &Lists[num1] <<std::endl;
-              merge1 += merge2;
-              Lists.remove(num1);
-              Lists.insert(num1, merge1);
-              Lists.remove(num2);
-            }else{
-              throw "Irregular file in case 3";
-            }
+          for (int i = 0 ; i< Lists.size();i++){
+            std::cout << i << ": ";
+            Lists[i].display();
           }
-          break;
+          num1 = -1; num2 = -1;
+          if (is >> num1 >> num2){
+            LinkList<std::string> merge1 = Lists[num1];
+            LinkList<std::string> merge2 = Lists[num2];
+            // std::cout << merge1 << std::endl;
+            // std::cout << &Lists[num1] <<std::endl;
+            merge1 += merge2;
+            Lists.remove(num1);
+            Lists.insert(num1, merge1);
+            Lists.remove(num2);
+          }else{
+            throw "Irregular file in case 3";
+          }
+        
+        break;
 
         case 9:  // 销毁 
           // for (int i = 0; i < Lists.size(); i++)
@@ -381,6 +382,7 @@ void ope_file(){
       // ope = input_for_submenu();
       if (ope == 0){
         is_insubmenu = false;
+        continue;
       }
       switch (ope){
         case 1:  // 展示字符串
@@ -425,6 +427,9 @@ void ope_file(){
           l2.clear();
           Lists.remove(num1);
           break;
+        case 8:  // 显示单词个数
+          std::cout << "这个字符串单词个数为: " << l2.size();
+          break;
         default:
           std::cout << "不存在此命令，请重新输入" << std::endl;
           break;
@@ -436,7 +441,7 @@ void ope_file(){
 }
 
 int main(){
-  // ope_shell();
-  ope_file();
+  ope_shell();
+  // ope_file();
   return 0;
 }

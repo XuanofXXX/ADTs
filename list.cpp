@@ -2,7 +2,7 @@
  * @Author: XiaChunxuan xiachunxuan@ruc.edu.cn
  * @Date: 2023-09-14 20:25:43
  * @LastEditors: XiaChunxuan xiachunxuan@ruc.edu.cn
- * @LastEditTime: 2023-09-27 12:15:51
+ * @LastEditTime: 2023-09-27 14:13:50
  * @FilePath: /2023-2024_S3/数据结构1/ADTs/list.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -445,6 +445,13 @@ public:
 
 
   void clear(){
+		Node<Elemtype>* cur = head;
+		while (cur->next){
+			Node<Elemtype>* next = cur->next;
+			delete cur;
+			cur = next;
+		}
+		delete head;
     head = new Node<Elemtype>();
     dataSize = 0;
   }
