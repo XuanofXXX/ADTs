@@ -1,3 +1,11 @@
+/*
+ * @Author: XiaChunxuan xiachunxuan@ruc.edu.cn
+ * @Date: 2023-09-26 12:27:34
+ * @LastEditors: XiaChunxuan xiachunxuan@ruc.edu.cn
+ * @LastEditTime: 2023-09-29 09:58:15
+ * @FilePath: /2023-2024_S3/数据结构1/ADTs/string.cpp
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 #include <iostream>
 
 class String {
@@ -56,5 +64,3 @@ int main() {
   std::cout << "All tests passed!\n";
   return 0;
 }
-// END: 9f8e7d4b2c3a
-
