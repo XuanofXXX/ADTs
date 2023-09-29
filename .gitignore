@@ -1,3 +1,4 @@
 *.dSYM
 *.cph
 .DS_Store
+*.zip
