@@ -2,7 +2,7 @@
  * @Author: XiaChunxuan xiachunxuan@ruc.edu.cn
  * @Date: 2023-09-26 12:41:37
  * @LastEditors: XiaChunxuan xiachunxuan@ruc.edu.cn
- * @LastEditTime: 2023-09-28 20:31:34
+ * @LastEditTime: 2023-09-29 10:02:57
  * @FilePath: /2023-2024_S3/数据结构1/ADTs/main.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -100,18 +100,6 @@ bool in_stop_words(char s){
 
 void ope_shell(){
   LinkList<LinkList<std::string>> Lists;
-  // menu();
-
-  // { // 测试List的构造函数
-  //   List<std::string> l6;   
-  //   l6.clear();
-  //   l6.append("1");
-  //   if (l6.empty()){
-  //     l6.clear();
-  //   }
-  // }
-  
-  
   std::string s;
   int ope, pre;
   int num1, num2;
@@ -121,8 +109,6 @@ void ope_shell(){
     LinkList<std::string> l1;
     LinkList<std::string> l2;
     Node<std::string>* node;
-    // std::cout << "l1's address" << &l1 << std::endl;
-    // std::cout << "l2's address" << &l2 << std::endl;
     // NOTE: 谨慎使用cin >> ope; 因为输入不是整数时会导致死循环 
     ope = input_for_menu();
     switch (ope)
@@ -132,7 +118,6 @@ void ope_shell(){
         break;
       case 1:  // 输入
       // 在一个txt文件里面读取一个字符串，并表示为变量s
-      
         getchar();
         std::cout << "请输入新字符串： ";
         std::getline(std::cin,s);
@@ -176,8 +161,6 @@ void ope_shell(){
         {
           LinkList<std::string> merge1 = Lists[num1];
           LinkList<std::string> merge2 = Lists[num2];
-          // std::cout << merge1 << std::endl;
-          // std::cout << &Lists[num1] <<std::endl;
           merge1 += merge2;
           Lists.remove(num1);
           Lists.insert(num1, merge1);
@@ -415,11 +398,6 @@ void ope_file(){
         break;
 
         case 9:  // 销毁 
-          // for (int i = 0; i < Lists.size(); i++)
-          // {
-          //   std::cout << i << ": ";
-          //   Lists[i].display();          
-          // }
           if (is >> num1){
             Lists.pop(num1);
           }else{
@@ -446,8 +424,6 @@ void ope_file(){
           break;
       }
     }else{
-      // submenu();
-      // ope = input_for_submenu();
       if (ope == 0){
         is_insubmenu = false;
         continue;

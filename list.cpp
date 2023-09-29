@@ -2,7 +2,7 @@
  * @Author: XiaChunxuan xiachunxuan@ruc.edu.cn
  * @Date: 2023-09-14 20:25:43
  * @LastEditors: XiaChunxuan xiachunxuan@ruc.edu.cn
- * @LastEditTime: 2023-09-28 20:12:20
+ * @LastEditTime: 2023-09-29 10:02:34
  * @FilePath: /2023-2024_S3/数据结构1/ADTs/list.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -119,23 +119,12 @@ public:
   }
   delete[] tmp;
   dataCapacity = newCapacity;
-    // std::cout << "ENTENDCAPACITY" << std::endl;
-    // int newCapacity = capacity() * extendRatio;
-    // Elemtype* newbase = ( Elemtype * ) realloc (data, newCapacity * sizeof(Elemtype) );
-    // data = newbase;
-    // dataCapacity = newCapacity;
-    // std::cout << "ENTENDCAPACITY" << std::endl;
   }
 
 
 
   // 在尾部追加元素
   void append(Elemtype val){
-    /**
-     * 
-     * 
-     * 
-    */
     if (size() + 1 > capacity()){
       extendCapacity();
     }
@@ -257,24 +246,6 @@ public:
 };
 
 
-// int main(){
-//   List<int> Mylist;
-//   Mylist.print();
-//   for (int i = 0;i < 21;i++){
-//     Mylist.append(i);
-//   }
-//   Mylist.print();
-//   std::cout <<"pop:" << Mylist.pop() << ' ' << Mylist.pop() << std::endl;
-  
-//   Mylist.print();
-//   std::cout << std::endl;
-//   Mylist.insert(0,999);
-//   Mylist.print();
-//   Mylist.remove(2);
-//   Mylist.print();
-// }
-
-
 template <typename Elemtype>
 struct Node {
   Elemtype data;
@@ -299,10 +270,6 @@ public:
   bool empty(){
     return dataSize == 0;
   }
-
-	// Elemtype at(int index){
-		
-	// }
 
   void prepend(Elemtype val) {
     Node<Elemtype>* newNode = new Node<Elemtype>(val);
@@ -349,14 +316,6 @@ public:
     }
     if (dataSize > maxtimes) std::cout <<"... -> None" << std::endl;
     else std::cout <<"None" << std::endl; 
-    
-    // for (int i= 0 ;i< dataSize;i++){
-    //   std::cout << cur->data << " -> ";
-      
-    //   cur = cur->next; 
-    // }
-    // std::cout <<"None" << std::endl;
-    
   }
 
   void insert(int pos, Elemtype val){
@@ -471,7 +430,6 @@ public:
     this->dataSize += other.dataSize;
   }
 
-
   void clear(){
 		Node<Elemtype>* cur = head;
 		while (cur->next){
@@ -487,7 +445,6 @@ public:
     dataSize = 0;
   }
   /*
-
   // DEBUG When LinkList<int> MyList3 = Mylist1 + Mylist2; Mylist1 will change?
   // NOTE: NOT SUPPORT + operation for LinkList!
   LinkList<Elemtype> operator+(LinkList<Elemtype> &other){
@@ -496,14 +453,7 @@ public:
     res.extend(other);
     return res;
   }
-  
   */
-
- 	// LinkList<Elemtype> operator=(LinkList<Elemtype> &other){
-	// 	clear();
-	// 	extend(other);
-	// 	return *this;
-	// }
 
 	Elemtype operator[](int index){
 		if (index >= size() || index < -size()) throw "index out of range";
@@ -530,7 +480,6 @@ public:
       cur = next;
     }
   }
-
 
   // ~LinkList() {
     
