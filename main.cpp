@@ -214,14 +214,14 @@ LinkList<string> splitChineseString(const string s){
 }
 
 void ope_shell(){
-  <LinkList<string>> Lists;
+  vector<LinkList<string>* > Lists;
   string s;
   int ope, pre;
   int num1, num2;
   menu();
   while (1){
-    LinkList<string> l1;
-    LinkList<string> l2;
+    LinkList<string>* l1 = new LinkList<string>();
+    LinkList<string>* l2 = new LinkList<string>();
     // cout << "l1's address" << &l1 << endl;
     // cout << "l2's address" << &l2 << endl;
     // NOTE: 谨慎使用cin >> ope; 因为输入不是整数时会导致死循环
@@ -229,8 +229,10 @@ void ope_shell(){
     switch (ope)
     {
       case 0:
+      {
         menu();
         break;
+      }
       case 1:{  // 输入
       // 在一个txt文件里面读取一个字符串，并表示为变量s
       
@@ -238,29 +240,26 @@ void ope_shell(){
         cout << "请输入新字符串： ";
         getline(cin,s);
         pre = 0;
-        if (l1.empty()){
-          l1.clear();
-        }
         for (int i = 0; i < s.length(); i++){
           if (s[i] == ' ' || s[i] == ','){
             string token = s.substr(pre, i-pre);
             pre = i+1;
-            l1.append(token);
+            l1->append(token);
           }
         }
         if (pre != s.length()){
-          l1.append(s.substr(pre, s.length()-pre));
+          l1->append(s.substr(pre, s.length()-pre));
         }
-        l1.display();
-        Lists.append(l1);
+        l1->display();
+        Lists.push_back(l1);
         break;
       }
       case 2:{  // 查看现在存入的字符串：
         for (int i = 0 ; i< Lists.size();i++){
           cout << i << ": ";
 
-          LinkList<string> l = Lists[i];
-          l.display();
+          LinkList<string>* l = Lists[i];
+          l->display();
         }
         break;
       }
@@ -269,21 +268,19 @@ void ope_shell(){
         num1 = -1; num2 = -1;
         for (int i = 0 ; i< Lists.size();i++){
           cout << i << ": ";
-          Lists[i].display();
+          Lists[i]->display();
         }
         while (num1 < 0 || num2 < 0 || num1 >= Lists.size() || num2 >= Lists.size() || num1 == num2){
           cout << "请输入合并的两个字符串序号(s1 <- s2): ";
           cin >> num1 >> num2;
         }
         {
-          LinkList<string> merge1 = Lists[num1];
-          LinkList<string> merge2 = Lists[num2];
+          LinkList<string>* merge1 = Lists[num1];
+          LinkList<string>* merge2 = Lists[num2];
           // cout << merge1 << endl;
           // cout << &Lists[num1] <<endl;
-          merge1 += merge2;
-          Lists.remove(num1);
-          Lists.insert(num1, merge1);
-          Lists.remove(num2);
+          merge1->extend(merge2);
+          Lists.erase(Lists.begin()+num2);
         }
         break;
       }
@@ -296,7 +293,8 @@ void ope_shell(){
             ifstream inputFile("./"+s);
             if (!inputFile.is_open()) {
               cerr << "无法打开文件" << endl;
-              throw runtime_error("Can't open the file!");
+              break;
+              // throw runtime_error("Can't open the file!");
             }
             getline(inputFile, s);
             cout<<"读取成功！"<<endl;
@@ -307,11 +305,11 @@ void ope_shell(){
           // if (s.find("。") != string::npos){
           //   s = replaceAllC(s);
           // }
-          if (l1.empty()){
-            l1.clear();
+          if (l1->empty()){
+            l1->clear();
           }
           string now = "";
-          Node<string>* node = l1.head;
+          Node<string>* node = l1->head;
           for (int i = 0; i < s.length();){
             size_t charLen = utf8CharLen(s[i]);
             string word = s.substr(i, charLen);
@@ -325,36 +323,39 @@ void ope_shell(){
                 if (now != "") {
                     node->next = new Node<string>(now);
                     node = node->next;
-                    l1.dataSize++;
+                    l1->dataSize++;
                     now = "";
                 }
             }
             i += charLen;
           }
           cout<< "read complish!"<< endl;
-          Lists.append(l1);
+          Lists.push_back(l1);
           cout<<"切词成功！"<<endl;
           break;
         }
       case 5:  // 销毁 
+      {
         for (int i = 0; i < Lists.size(); i++)
         {
           cout << i << ": ";
-          Lists[i].display();          
+          Lists[i]->display();          
         }
         num1 = -1;
         cout <<"请输入你想销毁的字符串编号: "; 
         while(num1 < 0 || num1 >= Lists.size()){
           cin >> num1;
         }
-        Lists[num1].Destory();
-        Lists.pop(num1);
+        // Lists[num1]->Destory();
+        Lists.erase(Lists.begin() + num1);
         break;
+      }
       case 9:  // 针对某一个字符串进行操作
+      {
         for (int i = 0; i < Lists.size(); i++)
         {
           cout << i << ": ";
-          Lists[i].display();          
+          Lists[i]->display();          
         }
         num1 = -1;
         while (num1 >= Lists.size() || num1 < 0){
@@ -373,7 +374,7 @@ void ope_shell(){
               submenu();
               break;
             case 1:  // 展示字符串
-              l2.display();
+              l2->display();
               break;
             case 2:  // 插入单词
             {
@@ -384,18 +385,18 @@ void ope_shell(){
                 cout<<endl;
               }
 
-              num1 = l2.size()+1;
-              while(num1 > l2.size()){
+              num1 = l2->size()+1;
+              while(num1 > l2->size()){
                 cout << "请输入想要插入的位置: ";
                 cin >> num1;
-                if (num1 < 0) num1 += l2.size()+1;
+                if (num1 < 0) num1 += l2->size()+1;
               }
               
               cout<<"接下来请输入你想要插入的单词，使用换行隔开" << endl;
               for (int i = 0;i < words_counts; i++){
                 string word;
                 cin >> word;
-                l2.insert(num1, word);
+                l2->insert(num1, word);
                 num1 ++;
               }
               break;
@@ -409,31 +410,31 @@ void ope_shell(){
                 cout<<endl;
               }
 
-              num1 = l2.size();
-              while( num1 >= l2.size()){
+              num1 = l2->size();
+              while( num1 >= l2->size()){
                 cout << "请输入想要删除的单词的位置: ";
                 cin >> num1;
-                if (num1 < 0) num1 += l2.size();
+                if (num1 < 0) num1 += l2->size();
               }
-              for (int i = 0;i < words_counts && num1 < l2.size(); i++){
-                l2.remove(num1);
+              for (int i = 0;i < words_counts && num1 < l2->size(); i++){
+                l2->remove(num1);
               }
               break;
             }
             case 4:  // 倒置字符串
-              l2.reverse();
+              l2->reverse();
               break;
             case 5:  // 判断是否是回文串
-              if (l2.judgeHuiwen()) cout << "是回文串";
+              if (l2->judgeHuiwen()) cout << "是回文串";
               else cout << "不是回文串";
               break;
             case 6:  // 计算字符串中单词的个数
               cout << "请输入想要查询的单词: ";
               cin >> s;
-              cout << "这个词出现了" << l2.count(s) << "次";
+              cout << "这个词出现了" << l2->count(s) << "次";
               break; 
             case 7:  // 显示单词个数
-              cout << "这个字符串单词个数为: " << l2.size();
+              cout << "这个字符串单词个数为: " << l2->size();
               break;
             default:
               cout << "不存在此命令，请重新输入" << endl;
@@ -445,6 +446,7 @@ void ope_shell(){
       default:
         cout << "不存在此命令，请重新输入";
         break;
+      }
     }
     cout << endl;
   }
@@ -483,8 +485,8 @@ void ope_shell(){
 //       switch (ope){
 //         case 1:  // 输入
 //           pre = 0;
-//           if (l1.empty()){
-//             l1.clear();
+//           if (l1->empty()){
+//             l1->clear();
 //           }
 //           for (int i = 0; i < s.length(); i++){
 //             if ((s[i] == ' ') || (s[i] == ',')){
@@ -494,13 +496,13 @@ void ope_shell(){
 //               // }
 //               string token = s.substr(pre, i-pre);
 //               pre = i+1;
-//               l1.append(token);
+//               l1->append(token);
 //             }
 //           }
 //           if (pre != s.length()){
-//             l1.append(s.substr(pre, s.length()-pre));
+//             l1->append(s.substr(pre, s.length()-pre));
 //           }
-//           l1.display();
+//           l1->display();
 //           Lists.append(l1);
 //           break;
 
@@ -573,12 +575,12 @@ void ope_shell(){
 //       }
 //       switch (ope){
 //         case 1:  // 展示字符串
-//           l2.display();
+//           l2->display();
 //           break;
 //         case 2:  // 插入单词
 //           cout << "请输入想要插入的单词和位置: ";
 //           if(is >> s >> num1){
-//             l2.insert(num1, s);
+//             l2->insert(num1, s);
 //           }else{
 //             throw "Irregular file in subcase 2";
 //           }
@@ -586,17 +588,17 @@ void ope_shell(){
 //         case 3:  // 删除单词
 //           cout << "请输入想要删除的单词的位置: ";
 //           if (is >> num1){
-//             l2.remove(num1);
+//             l2->remove(num1);
 //           }else{
 //             throw "Irregular file in subcase 3";
 //           }
           
 //         break;
 //         case 4:  // 倒置字符串
-//           l2.reverse();
+//           l2->reverse();
 //           break;
 //         case 5:  // 判断是否是回文串
-//           if (l2.judgeHuiwen()){
+//           if (l2->judgeHuiwen()){
 //             cout << "是回文串";
 //           }else{
 //             cout << "不是回文串";
@@ -605,17 +607,17 @@ void ope_shell(){
 //         case 6:  // 计算字符串中单词的个数
 //           cout << "请输入想要查询的单词: ";
 //           if(is >> s){
-//             cout << "这个词出现了" << l2.count(s) << "次";
+//             cout << "这个词出现了" << l2->count(s) << "次";
 //           }else{
 //             throw "Irregular file in subcase 6";
 //           }
 //           break; 
 //         case 7:  // 销毁 
-//           l2.clear();
+//           l2->clear();
 //           Lists.remove(num1);
 //           break;
 //         case 8:  // 显示单词个数
-//           cout << "这个字符串单词个数为: " << l2.size();
+//           cout << "这个字符串单词个数为: " << l2->size();
 //           break;
 //         default:
 //           cout << "不存在此命令，请重新输入" << endl;

@@ -1,6 +1,8 @@
 *.dSYM
 *.cph
 *.txt
-.DS_Store
 *.zip
+*.a
+.dSYM/
+.DS_Store
 test.cpp

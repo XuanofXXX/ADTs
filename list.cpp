@@ -222,8 +222,8 @@ public:
     }
   }
 
-  void extend(List<Elemtype> other){
-    for (int i = 0 ;i < other.size();i++){
+  void extend(List<Elemtype>* other){
+    for (int i = 0 ;i < other->size();i++){
       append(other[i]);
     }
   }
@@ -235,12 +235,6 @@ public:
     return res;
   }
 
-  List<Elemtype>& operator+=(List<Elemtype> &other){
-    extend(other);
-    return *this;
-  };
-
-  // 定位，支持类似python的-1索引
   Elemtype operator[](int index){
     if (index >= size() || index < -size()) throw "index out of range";
     if (index < 0) return data[index+size()];
@@ -273,8 +267,6 @@ public:
 //   Mylist.remove(2);
 //   Mylist.print();
 // }
-
-
 template <typename Elemtype>
 struct Node {
   Elemtype data;
@@ -287,6 +279,9 @@ struct Node {
 // 定义链表类
 template <typename Elemtype>
 class LinkList {
+
+private:
+
 public:
   Node<Elemtype>* head;
   int dataSize;
@@ -451,12 +446,12 @@ public:
     return true;
   }
 
-  void extend(LinkList<Elemtype> other){
+  void extend(LinkList<Elemtype>* other){
     Node<Elemtype>* cur = head;
     while (cur->next){
       cur = cur->next;   
     }
-    Node<Elemtype>* cur_other = other.head->next;
+    Node<Elemtype>* cur_other = other->head->next;
     while (cur_other){
 
       Node<Elemtype>* newNode = new Node<Elemtype>(cur_other->data);
@@ -468,7 +463,7 @@ public:
       cur = cur->next;
       cur_other = cur_other->next;
     }
-    this->dataSize += other.dataSize;
+    this->dataSize += other->dataSize;
   }
 
 
@@ -521,10 +516,19 @@ public:
     return *this;
   }
 
-  void Destory(){
-    Node<Elemtype>* cur = head;
+  // void Destory(){
+  //   Node<Elemtype>* cur = head;
 
-    while (cur && cur->next) {
+  //   while (cur && cur->next) {
+  //     Node<Elemtype>* next = cur->next;
+  //     delete cur;
+  //     cur = next;
+  //   }
+  // }
+
+  ~LinkList(){
+    Node<Elemtype>* cur = head;
+    while(cur){
       Node<Elemtype>* next = cur->next;
       delete cur;
       cur = next;
