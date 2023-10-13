@@ -3,6 +3,9 @@
 *.txt
 *.zip
 *.a
-.dSYM/
 .DS_Store
-test.cpp
+# for test:
+test.cpp 
+.vscode/
+.history/
+.dSYM/

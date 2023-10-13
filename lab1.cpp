@@ -11,7 +11,8 @@
 #include <sstream>
 #include <string>
 #include <stdexcept>  // for runtime_error
-#include "list.cpp"
+#include "src/List.cpp"
+#include "src/LinkedList.cpp"
 
 using namespace std;
 
