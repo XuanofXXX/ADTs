@@ -2,10 +2,13 @@
 *.cph
 *.txt
 *.zip
-*.a
+*.[oa]
 .DS_Store
-# for test:
-test.cpp 
+
+test*
+**/test*
+*.dSYM
+**/*.dSYM
+
 .vscode/
 .history/
-.dSYM/
