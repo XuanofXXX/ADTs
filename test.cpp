@@ -12,14 +12,12 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "src/List.cpp"
+#include "src/dataStructure/List.cpp"
 #include <cstring>
 
 using namespace std;
 
 int main(){
-
-  cout << strcmp("a","aaaab");
-
-  
+  std::cout << "Hello, World!" << std::endl;
+  return 0;
 }

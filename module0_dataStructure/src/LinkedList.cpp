@@ -77,14 +77,6 @@ public:
     }
     if (dataSize > maxtimes) std::cout <<"... -> None" << std::endl;
     else std::cout <<"None" << std::endl; 
-    
-    // for (int i= 0 ;i< dataSize;i++){
-    //   std::cout << cur->data << " -> ";
-      
-    //   cur = cur->next; 
-    // }
-    // std::cout <<"None" << std::endl;
-    
   }
 
   void insert(int pos, Elemtype val){
