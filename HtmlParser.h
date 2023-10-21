@@ -4,9 +4,9 @@
 #include <fstream>
 #include <regex>
 
-#include "../src/List.cpp"
-#include "../src/Stack.cpp"
-#include "../src/Pair.cpp"
+#include "DataStructure/src/List.cpp"
+#include "DataStructure/src/Stack.cpp"
+#include "DataStructure/src/Pair.cpp"
 
 using std::string;
 

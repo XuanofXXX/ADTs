@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "HtmlParser.h"
 
 string readFile(const string& filename){
@@ -7,7 +8,7 @@ string readFile(const string& filename){
    * @brief Reading a file using its filename
    */
   std::fstream file(filename);
-  if (!file){
+  if (!file) {
     std::cerr << "Cannot open file!" << std::endl;
     exit(1);
   }

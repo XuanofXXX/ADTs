@@ -5,6 +5,7 @@
 *.[oa]
 .DS_Store
 !CMakeLists.txt
+a.out
 test*
 **/test*
 *.dSYM
