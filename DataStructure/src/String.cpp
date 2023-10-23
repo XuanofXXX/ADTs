@@ -1,126 +1,53 @@
 #include <iostream>
 #include <cstring>
+#include <string>
+#include "List.cpp"
 
-class String {
-private:
-  char* str;
-  int len;
-public:
+using std::string;
 
-  String(const char* s = "") {
-    len = std::strlen(s);
-    str = new char[len + 1];
-    std::strcpy(str, s);
-  }
-
-  String(const String& s) {
-    len = s.len;
-    str = new char[len + 1];
-    std::strcpy(str, s.str);
-  }
-
-  ~String() {
-    delete[] str;
-  }
-
-  int length() const {
-    return len;
-  }
-
-  String operator+(const String& s) const {
-    char* res = new char[len + s.len + 1];
-    std::strcpy(res, str);
-    std::strcat(res, s.str);
-    String result(res);
-    delete[] res;
-    return result;
-  }
-
-  String operator+=(const String& s) {
-    char* res = new char[len + s.len + 1];
-    std::strcpy(res, str);
-    std::strcat(res, s.str);
-    delete[] str;
-    str = res;
-    len += s.len;
-    return *this;
-  }
-
-  String operator=(const String& s) {
-    if (this == &s) {
-      return *this;
+List<string> split(string s, char ch){
+  List<string> res;
+  string tmp = "";
+  for (int i = 0; i < s.size(); i++){
+    if (s[i] == ch){
+      res.append(tmp);
+      tmp = "";
     }
-    delete[] str;
-    len = s.len;
-    str = new char[len + 1];
-    std::strcpy(str, s.str);
-    return *this;
-  }
-
-  bool operator==(const String& s) const {
-    return std::strcmp(str, s.str) == 0;
-  }
-
-  bool operator!=(const String& s) const {
-    return std::strcmp(str, s.str) != 0;
-  }
-
-  bool operator<(const String& s) const {
-    return std::strcmp(str, s.str) < 0;
-  }
-
-  bool operator>(const String& s) const {
-    return std::strcmp(str, s.str) > 0;
-  }
-
-  bool operator<=(const String& s) const {
-    return std::strcmp(str, s.str) <= 0;
-  }
-
-  bool operator>=(const String& s) const {
-    return std::strcmp(str, s.str) >= 0;
-  }
-
-  char operator[](int i) const {
-    if (i < 0 || i >= len) {
-      std::cerr << "Index out of range" << std::endl;
-      return '\0';
+    else{
+      tmp += s[i];
     }
-    return str[i];
   }
+  res.append(tmp);
+  return res;
+}
 
-  // Write a operation +=
-  void operator+=(const char* s) {
-    char* res = new char[len + std::strlen(s) + 1];
-    std::strcpy(res, str);
-    std::strcat(res, s);
-    delete[] str;
-    str = res;
-    len += std::strlen(s);
-  }
-
-  void operator+=(const char s) {
-    char* res = new char[len + std::strlen(&s) + 1];
-    std::strcpy(res, str);
-    std::strcat(res, &s);
-    delete[] str;
-    str = res;
-    len += std::strlen(&s);
-  }
-  String substr(int start, int length) const {
-    if (start < 0 || start >= len || length < 0 || start + length > len) {
-      std::cerr << "Invalid substring" << std::endl;
-      return String();
+string stripe(string s){
+  string res = "";
+  int index = 0;
+  int endindex = s.size();
+  for (index; index < s.size(); index++)
+  {
+    if (s[index] != ' ' && s[index] != '\n' && s[index] != '\t'){
+      break;
     }
-    char* res = new char[length + 1];
-    std::strncpy(res, str + start, length);
-    res[length] = '\0';
-    String result(res);
-    delete[] res;
-    return result;
   }
 
-  const char* c_str() const {
-    return str;
+  if (index == s.size()-1){
+    return "";
   }
-};
+
+
+  for (endindex; endindex >= 0; endindex --){
+    if (s[endindex] != ' ' && s[endindex] != '\n' && s[endindex] != '\t'){
+      break;
+    }
+  }
+
+  if (index < endindex){
+    for (int i = index; i <= endindex; i++){
+      res += s[i];
+    }
+  }
+
+  return res; 
+}
