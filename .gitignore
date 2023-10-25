@@ -10,6 +10,7 @@ test*
 **/test*
 *.dSYM
 **/*.dSYM
+build/
 
 .vscode/
 .history/

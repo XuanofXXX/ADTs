@@ -3,6 +3,7 @@
 #include <string>
 #include <regex>
 #include <cctype>
+#include <curl/curl.h>
 
 // #include "include/lab2.h"
 #include "./DataStructure/src/List.cpp"
@@ -11,142 +12,65 @@
 
 using namespace std;
 
-string OutHTML(HtmlElem* root, const string& s){
-  if (s == "/"){
-    return showSub(root);
-  }
-
-  List<string> res;
-  string tmp = "";
-  for (int i = 0; i < s.size(); i++){
-    if (s[i] == '/'){
-      if (tmp == "") continue;
-      tmp = toLowerCase(tmp);
-      res.append(tmp);
-      tmp = "";
-    }
-    else{
-      tmp += s[i];
-    }
-  }
-  res.append(tmp);
-  HtmlElem* cur = root;
-  Queue<HtmlElem*> qe;
-  qe.enqueue(cur);
-
-  // ? good
-  // for (int i = 0; i < res.size(); i++)
-  // {
-  //   cout << res[i] << endl;
-  // }
-  
-  for (int i = 0; i < res.size(); i++)
-  {
-    string node = res[i];
-    bool found = false;
-    int size = qe.getSize();
-    for (int time = 0; time < size; time++)
-    {
-      cur = qe.peek();
-      qe.dequeue();
-      for (int j = 0; j < cur->children.size(); j++){
-        HtmlElem* Node = cur->children[j];
-        if (cur->children[j]->tag == node){
-          found = true;
-          qe.enqueue(cur->children[j]);
-        }
-      }
-    }
-    if (found == false) return "NONE";
-  }
-  string ans = "";
-  while (!qe.empty())
-  {
-    cur = qe.peek();
-    qe.dequeue();
-    ans += show(cur);
-  } 
-  return ans;
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+  ((string*)userp)->append((char*)contents, size * nmemb);
+  return size * nmemb;
 }
 
-string Text(HtmlElem* root, const string& s){
-  if (s == "/"){
-    return showText(root);
-  }
+string fetch_url_content(const string& url) {
+  CURL* curl;
+  CURLcode res;
+  string readBuffer;
 
-  List<string> res;
-  string tmp = "";
-  for (int i = 0; i < s.size(); i++){
-    if (s[i] == '/'){
-      if (tmp == "") continue;
-      tmp = toLowerCase(tmp);
-      res.append(tmp);
-      tmp = "";
-    }
-    else{
-      tmp += s[i];
-    }
+  curl = curl_easy_init();
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
   }
-  res.append(tmp);
-  HtmlElem* cur = root;
-  Queue<HtmlElem*> qe;
-  qe.enqueue(cur);
-
-  // ? good
-  // for (int i = 0; i < res.size(); i++)
-  // {
-  //   cout << res[i] << endl;
-  // }
-  
-  for (int i = 0; i < res.size(); i++)
-  {
-    string node = res[i];
-    bool found = false;
-    int size = qe.getSize();
-    for (int time = 0; time < size; time++)
-    {
-      cur = qe.peek();
-      qe.dequeue();
-      for (int j = 0; j < cur->children.size(); j++){
-        HtmlElem* Node = cur->children[j];
-        if (cur->children[j]->tag == node){
-          found = true;
-          qe.enqueue(cur->children[j]);
-        }
-      }
-    }
-    if (found == false) return "NONE";
-  }
-  string ans = "";
-  while (!qe.empty())
-  {
-    cur = qe.peek();
-    qe.dequeue();
-    ans += showText(cur);
-  } 
-  return ans;
+  return readBuffer;
 }
 
-int main(){
-  string doc = readFile("./Test/实验02_case00.html");
-  // cout << doc << endl;
+bool isHttpURL(const string& str) {
+  return str.substr(0, 7) == "http://" || str.substr(0, 8) == "https://";
+}
 
-  HtmlElem* root = new HtmlElem();
-  // cout << doc.size();
+int main() {
+  HtmlParser parser;
   
-  root = parseHtml(doc);
-  if (root == nullptr){
-    cout << "Illegal HTML file" << endl;
-    return 0;
+  while (true) {
+    cout << "Enter command (ReadHTML, CheckHTML, OutHTML, Text, Exit): ";
+    string command;
+    getline(cin, command);
+    if (command.substr(0,8) == "ReadHTML"){
+      string path = command.substr(9); // 假设命令和路径之间有一个空格
+      if (isHttpURL(path)){
+        string content = fetch_url_content(path);
+        parser.ReadHTML(content);
+      }else{
+        parser.readFile(path);
+      }
+    }
+    else if (command == "CheckHTML") {
+      if (parser.getRoot() == nullptr){
+        cout <<"Illegal HTML file" << endl;
+      }else{
+        cout << "Legal HTML file" << endl;
+      }
+    } else if (command.substr(0, 7) == "OutHTML") {
+      string path = command.substr(8); // 假设命令和路径之间有一个空格
+      cout << parser.OutHTML(path) << endl;
+    } else if (command.substr(0, 4) == "Text") {
+      string path = command.substr(5); // 假设命令和路径之间有一个空格
+      cout << parser.Text(path) << endl;
+    } else if (command == "Exit") {
+      break;
+    } else {
+      cout << "Invalid command." << endl;
+    }
   }
-  // cout << show(root) << endl;
-  cout << showSub(root) << endl;
-  // cout << show(root->children[0]) << endl;
-  // cout << showSub(root->children[0]) << endl;
-  // cout << endl;
-  
-  string path = "/";
-  // cout << showText(root) << endl;
-  
+
   return 0;
 }

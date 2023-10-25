@@ -26,5 +26,6 @@ int main() {
     std::string url = "http://ai.ruc.edu.cn/english/index.htm";  // 替换成您想要爬取的URL
     std::string content = fetch_url_content(url);
     std::cout << content << std::endl;  // 输出网页源代码
+
     return 0;
 }
