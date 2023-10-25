@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "HtmlParser.h"
 
 string readFile(const string& filename){
@@ -18,29 +17,56 @@ string readFile(const string& filename){
   return buffer.str();
 }
 
-HtmlElem* isAnt(const string& s, int i){
+HtmlElem* isComment(const string& s, int i){
   /**
    * \@brief 
    * \@param: s: string
    * \@param: i: index of the '<'
    * \@return: return the position of Annotation '>', if not Annotation, return i;
    */
-  HtmlElem* newElem = new HtmlElem();
-  i++;
-  if (i+6 >= s.length() ||
-    !(s[i] == '!' && s[i+1] == '-' && s[i+2] == '-'))
+  HtmlElem* res = new HtmlElem();
+  res->tag = "NONE";
+  if (s[i+1] == '!' && s[i+2] == '-' && s[i+3] == '-')
   {
-    newElem->tag = "NONE";
-    return newElem;
-  }
-  for (int j = i+5; j < s.size(); j++){
-    if (s[j-2] == '-' && s[j-1] == '-' && s[j] == '>'){
-      newElem->tag = "COMMENT";
-      newElem->start_index = i;
-      newElem->end_index = j;
-      return newElem;
+    res->tag = "COMMENT";
+    string comment = "";
+    for (int j = i+4; j+2 < s.size(); j++){
+      if (s[j] == '-' && s[j+1] == '-' && s[j+2] == '>'){
+        res->attribute = comment;
+        res->start_index = i;
+        res->end_index = j+2;
+        return res;
+      }
+      comment += s[j];
     }
   }
+  return res;
+}
+
+HtmlElem* isJavaScript(const string&s, int i){
+  /**
+   * @brief Determine whether the tag is a JavaScript or not
+   * @param s: string
+   * @param i: index of the '<'
+   * @return : return the position of JavaScript '>', if not JavaScript, return i;
+   */
+  HtmlElem* res = new HtmlElem();
+  res->tag = "NONE";
+  if (s[i+1] == 's' && s[i+2] == 'c' && s[i+3] == 'r' && s[i+4] == 'i' && s[i+5] == 'p' && s[i+6] == 't')
+  {
+    res->tag = "SCRIPT";
+    string script = "";
+    for (int j = i+7; j+8 < s.size(); j++){
+      if (s[j] == '<' && s[j+1] == '/' && s[j+2] == 's' && s[j+3] == 'c' && s[j+4] == 'r' && s[j+5] == 'i' && s[j+6] == 'p' && s[j+7] == 't' && s[j+8] == '>'){
+        res->attribute = script;
+        res->start_index = i;
+        res->end_index = j+8;
+        return res;
+      }
+      script += s[j];
+    }
+  }
+  return res;
 }
 
 int isSelfClosing(const string& s){
@@ -69,15 +95,16 @@ int isSelfClosing(const string& s){
       "table", "tbody", "td", "textarea", "tfoot", "th", "thead", 
       "time", "title", "tr", "ul", "var", "video"
   };
-  for (size_t i = 0; i < non_self_closing_tags->length(); i++)
-  {
-    if (s == non_self_closing_tags[i]){
+  for (size_t i = 0; i < 16; i++)
+  { 
+    if (s == self_closing_tags[i]){
       return 1;
     }
   }
-  for (size_t i = 0; i < self_closing_tags->length(); i++)
+
+  for (size_t i = 0; i < 93; i++)
   {
-    if (s == self_closing_tags[i]){
+    if (s == non_self_closing_tags[i]){
       return 0;
     }
   }
@@ -94,31 +121,40 @@ HtmlElem* parseTag(const string& s, int i) {
    */
   HtmlElem* res = new HtmlElem();
   res->start_index = i;
+
   if (s[i+1] == '/'){  // Eng Tag </head>
     res->endTag= true;
-    i++;
+  }
+  
+  HtmlElem* temp = isComment(s, i);
+  if (temp->tag != "NONE"){
+    return temp;
+  }
+
+  temp = isJavaScript(s,i);
+  if (temp->tag != "NONE"){
+    return temp;
   }
   
   Stack<char> st;
-  string attribute;
+  string attribute = "";
   string tagname = "";
-  for (int j = i+1; j < s.length(); j++) // Get Tag Name
+  int index = i;
+  
+  for (int j = index+1; j < s.length(); j++) // Get Tag Name
   {
     if (s[j] == ' ' or s[j] == '>'){
-      i = j;
+      // cout << "tagname finish:" << s[j];
+      index = j;
       res->tag = tagname;
+      break;
     }
     tagname += s[j];
   }
-
-  if (isSelfClosing(tagname) == 0){   // Self Closing Tag
-    res->selfClosing = true;
-    return res;
-  }
   
-  for (int j = i; j < s.size(); j++)
+  for (int j = index; j < s.size(); j++)
   {
-    if (s[j] == '"'){     // class="f>f"
+    if (s[j] == '"'){     // class=""
       if (st.empty()){
         st.push('"');
       }else{
@@ -129,25 +165,56 @@ HtmlElem* parseTag(const string& s, int i) {
     if (st.empty() and s[j] == '>'){  // End of Tag
       res->attribute = attribute;
       res->end_index = j;
-      return res;
+      break;
     }
+
     attribute += s[j];    
   }
+
+  if (isSelfClosing(res->tag) == 1){   // Self Closing Tag
+    res->selfClosing = true;
+  }
   return res;
+}
+
+std::string strip(const std::string& str) {
+    std::string whitespace = " \t\n\r\f\v";
+    std::size_t start = str.find_first_not_of(whitespace);
+    std::size_t end = str.find_last_not_of(whitespace);
+    
+    if (start == std::string::npos) {  // 如果全部都是空白字符
+        return "";
+    }
+    
+    return str.substr(start, end - start + 1);
 }
 
 HtmlElem* parseContent(const string& s, int i){
   HtmlElem* res = new HtmlElem();
   res->start_index = i;
   res->tag = "CONTENT";
-  for (i; i < s.size(); i++)
-  {
-    if (s[i] == '<'){
-      res->end_index = i-1;
-      return res;
+
+  string content = "";
+
+  int index = i;
+
+  for(index; index < s.size(); index++){
+    if (s[index] == '<'){
+      res->end_index = index-1;
+      break;
     }
-    res->attribute += s[i];
+    // else if (s[index] == '\n'){
+    //   content += ' ';
+    // }else if (s[index] == '\t'){
+    //   continue;
+    // }else{
+    //   content += s[index];
+    // }
+    content += s[index];
   }
+
+  content = strip(content);
+  res->attribute = mergeSpaces(content);
   return res;
 }
 
@@ -164,18 +231,23 @@ HtmlElem* parseHtml(const string& doc){
 
   int index = 0;
   
-  while (!nodeStack.empty()){
+  while (!nodeStack.empty() && index +1 < doc.length()){
     HtmlElem* cur = nodeStack.top();
 
     if (doc[index] == '<'){
       HtmlElem* newEle = parseTag(doc, index);  // <node>
 
       if (newEle->endTag){  // </node>
-        if (newEle->tag == cur->tag){
-          cur->children.append(newEle);
-          index = newEle->end_index;
+        string endtag = newEle->tag.substr(1, newEle->tag.length()-1);
+        if (endtag == cur->tag){
           nodeStack.pop();
-          break;
+          cur = nodeStack.top();
+          cur->children.append(newEle);
+          index = newEle->end_index+1;
+          // cur->children.append(newEle);
+          // index = newEle->end_index;
+          // nodeStack.pop();
+          continue;
         }
         else{   // parse error
           // TODO: More Robust
@@ -183,20 +255,150 @@ HtmlElem* parseHtml(const string& doc){
         }
       }
 
-      if (!newEle->selfClosing && newEle->tag != "COMMENT"){
+      if (! newEle->selfClosing && newEle->tag != "COMMENT" && newEle->tag != "SCRIPT"){  // normal node
         nodeStack.push(newEle);
-        cur->children.append(newEle);
-        index = newEle->end_index+1;
-        break;
       }
       cur->children.append(newEle);
       index = newEle->end_index+1;
-    }else{
-      HtmlElem* newEle = parseContent(doc, index);
-      cur->children.append(newEle);
+    }
+    else{
+      HtmlElem* newEle = parseContent(doc, index);  // content
+      if (newEle->attribute != ""){
+        cur->children.append(newEle);
+      }
       index = newEle->end_index+1;
     }
 
   }
   return dummyRoot;
+}
+
+string showSub(HtmlElem* const root){
+  string res = "";
+  Stack<HtmlElem*> st;
+  Stack<int> st_indent;
+  st_indent.push(-1);
+  st.push(root);
+  while (!st.empty())
+  {
+    HtmlElem* cur = st.top();
+    st.pop();
+    int num = st_indent.top();
+    st_indent.pop();
+    for (int i = 0; i < num; i++)
+    {
+      res += '\t';
+    }
+    if (cur->tag == "COMMENT" or cur->tag == "SCRIPT") continue;
+    if (cur->tag == "CONTENT") res += cur->attribute + '\n';
+    else if (cur == root);
+    else {
+      if (cur->selfClosing == true){
+        res += "<" + cur->tag + cur->attribute + ">\n";
+      }else{
+        res += "<" + cur->tag + cur->attribute + ">\n";
+      }
+    }
+
+    for (int i = cur->children.size()-1; i >= 0; i--){
+      st_indent.push(num+1);
+      st.push(cur->children[i]);
+    }
+  }
+  return res;
+}
+
+string show(HtmlElem* const root){
+  string res = "";
+  Stack<HtmlElem*> st;
+  Stack<int> st_indent;
+  string startTag = root->tag;
+  st_indent.push(0);
+  st.push(root);
+  while (!st.empty())
+  {
+    HtmlElem* cur = st.top();
+    st.pop();
+    int num = st_indent.top();
+    st_indent.pop();
+    for (int i = 0; i < num; i++)
+    {
+      res += '\t';
+    }
+    if (cur->tag == "COMMENT" or cur->tag == "SCRIPT") continue;
+    if (cur->tag == "CONTENT") res += cur->attribute + '\n';
+    
+    else {
+      if (cur->selfClosing == true){
+        res += "<" + cur->tag + cur->attribute + ">\n";
+      }else{
+        res += "<" + cur->tag + cur->attribute + ">\n";
+      }
+    }
+
+    for (int i = cur->children.size()-1; i >= 0; i--){
+      st_indent.push(num+1);
+      st.push(cur->children[i]);
+    }
+  }
+  res += "</" + startTag + ">\n";
+  return res;
+}
+
+string showText(HtmlElem* const root){
+  string res = "";
+  Stack<HtmlElem*> st;
+  st.push(root);
+  while (!st.empty())
+  {
+    HtmlElem* cur = st.top();
+    st.pop();
+    if (cur->tag == "COMMENT" or cur->tag == "SCRIPT") continue;
+    if (cur->tag == "CONTENT") {
+      res += cur->attribute + '\n';
+    }
+    for (int i = cur->children.size()-1; i >= 0; i--){
+      st.push(cur->children[i]);
+    }
+  }
+  return res;
+}
+
+
+HtmlElem* searchTag(HtmlElem* root, const string& s){
+  List<string> l = split(s, '/');
+  for (size_t i = 0; i < l.size(); i++)
+  {
+    cout <<"List l:"<<endl;
+    cout << l.at(i) << ' ' << endl;
+  }
+  
+  HtmlElem* res = root;
+  for (int i = 0; i < l.size(); i++){
+    if (l[i] == "") continue;
+    string tag = l[i];
+    bool find = false;
+    for (int j = 0; j < res->children.size(); j++){
+      if (res->children[j]->tag == tag){
+        res = res->children[j];
+        find = true;
+        break;
+      }
+    }
+    if (!find){
+      return nullptr;
+    }
+  }
+  return res;
+}
+
+void debug(HtmlElem* ele){
+  cout << "ele.tag: " << ele->tag << endl;
+  cout << "ele.attribute: " << ele->attribute << endl;
+  cout << "ele.start_index: " << ele->start_index << endl;
+  cout << "ele.end_index: " << ele->end_index << endl;
+  cout << "ele.selfClosing: " << ele->selfClosing << endl;
+  cout << "ele.endTag: " << ele->endTag << endl;
+  cout << "ele.children.size(): " << ele->children.size() << endl;
+  cout << endl;
 }

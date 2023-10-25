@@ -49,7 +49,7 @@ public:
 
   ~List(){
     delete[] data;
-    std::cout << "Delete"<< std::endl;
+    // std::cout << "Delete"<< std::endl;
   }
 
   void clear(){
@@ -175,6 +175,12 @@ public:
       end --;
     }
   }
+
+  Elemtype& at(size_t index){
+    if (index >= size() || index < 0) throw "index out of range";
+    return data[index];
+  }
+
 
   List<Elemtype> operator+(const List<Elemtype> &other){
     List<Elemtype> res;
