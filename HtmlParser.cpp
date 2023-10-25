@@ -8,7 +8,6 @@ private:
   HtmlElem* root;
   string doc;
 
-
   HtmlElem* isComment(const string& s, int i){
     /**
      * \@brief 
@@ -69,7 +68,7 @@ private:
      */
     string self_closing_tags[] = {
         "area", "base", "br", "col", "command", "embed", "hr", "img", 
-        "input", "keygen", "link", "meta", "param", "source", "track", "wbr"
+        "input", "keygen", "link", "meta", "param", "source", "track", "wbr", "!DOCTYPE"
     };
 
     string non_self_closing_tags[] = {
@@ -87,7 +86,7 @@ private:
         "table", "tbody", "td", "textarea", "tfoot", "th", "thead", 
         "time", "title", "tr", "ul", "var", "video"
     };
-    for (size_t i = 0; i < 16; i++)
+    for (size_t i = 0; i < 17; i++)
     { 
       if (s == self_closing_tags[i]){
         return 1;
@@ -138,12 +137,16 @@ private:
       if (s[j] == ' ' or s[j] == '>'){
         // cout << "tagname finish:" << s[j];
         index = j;
-        res->tag = tagname;
+        if (tagname == "!DOCTYPE"){
+          res->tag = tagname;
+        }else{
+          res->tag = toLowerCase(tagname);
+        }
         break;
       }
       tagname += s[j];
     }
-    
+
     for (int j = index; j < s.size(); j++)
     {
       if (s[j] == '"'){     // class=""
@@ -172,6 +175,7 @@ private:
   HtmlElem* parseContent(const string& s, int i){
     HtmlElem* res = new HtmlElem();
     res->start_index = i;
+    res->end_index = s.size();
     res->tag = "CONTENT";
 
     string content = "";
@@ -214,9 +218,17 @@ private:
     while (!nodeStack.empty() && index +1 < doc.length()){
       HtmlElem* cur = nodeStack.top();
 
-      if (doc[index] == '<'){
-        HtmlElem* newEle = parseTag(doc, index);  // <node>
+      if (index > 19282){
 
+      }
+      if (doc[index] == '<'){
+        if (index == 2){
+
+        }
+        HtmlElem* newEle = parseTag(doc, index);  // <node>
+        if (newEle->tag == "!doctype"){
+
+        }
         if (newEle->endTag){  // </node>
           string endtag = newEle->tag.substr(1, newEle->tag.length()-1);
           if (endtag == cur->tag){
@@ -264,7 +276,7 @@ public:
     this->doc = html;
   }
 
-  void readFile(const string& filename){
+  void ReadFile(const string& filename){
   /**
    * @brief Reading a file using its filename
    */
@@ -377,6 +389,10 @@ public:
       return showSub(root);
     }
 
+    if (root == nullptr){
+      return "Illegal HTML file";
+    }
+
     List<string> res;
     string tmp = "";
     for (int i = 0; i < s.size(); i++){
@@ -476,9 +492,6 @@ public:
   return ans;
 }
 
-
-
-
   void debug(HtmlElem* ele){
     cout << "ele.tag: " << ele->tag << endl;
     cout << "ele.attribute: " << ele->attribute << endl;
@@ -498,9 +511,4 @@ public:
     return this->doc;
   }
 
-
-
-
 };
-
-
