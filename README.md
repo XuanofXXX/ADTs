@@ -6,5 +6,18 @@
  * @FilePath: /2023-2024_S3/数据结构1/ADTs/README.md
 -->
 # What I achieved:
-## 1. The Dynamic list and LinkedList
-They are both saved in list.cpp in the case that they are all Sequence List.
+## 1. Basic Data Structure
+Those in `DataStructure/src/`
+- Dynamic List
+- Single linked list
+- Pair
+- Queue
+- Stack
+- String(but only methods) (The basic STL string is too hard for me to implement)
+
+## 2. Labs
+### 2.1 String operation
+in `lab1.cpp`
+
+### 2.2 HtmlParser
+in `HtmlParser.cpp`,`lab2.cpp`

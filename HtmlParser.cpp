@@ -374,6 +374,7 @@ private:
       }
       else{
         HtmlElem* newEle = parseContent(doc, index);  // content
+        newEle->FatherType = cur->SelfType;
         if (newEle->attribute != ""){
           cur->children.append(newEle);
         }
@@ -494,7 +495,11 @@ public:
       st.pop();
       if (cur->tag == "COMMENT" or cur->tag == "SCRIPT" or cur->tag == "CSS") continue;
       if (cur->tag == "CONTENT") {
-        res += cur->attribute + '\n';
+        if (cur->FatherType == NORMAL_INLINE or cur->FatherType == SPECIAL_INLINE){
+          res += cur->attribute + ' ';
+        }else{
+          res += cur->attribute + '\n';
+        }
       }
       for (int i = cur->children.size()-1; i >= 0; i--){
         st.push(cur->children[i]);

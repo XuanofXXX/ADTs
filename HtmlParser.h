@@ -2,12 +2,10 @@
 
 #include<string>
 #include <fstream>
-#include <regex>
 
 #include "DataStructure/src/List.cpp"
 #include "DataStructure/src/Stack.cpp"
 #include "DataStructure/src/Queue.cpp"
-#include "DataStructure/src/Pair.cpp"
 #include "DataStructure/src/String.cpp"
 
 #define NORMAL_BLOCK 1
@@ -18,12 +16,13 @@
 using std::string;
 using std::cout;
 using std::endl;
+
 /**
- * TODO: Add comments
- * TODO: Path:  
+ * xTODO: Add comments
+ * xTODO: Path:  
  * xTODO: Ignore comment, CSS, script;
- * TODO: Remove spare blanks
- * TODO: URL.parser 
+ * xTODO: Remove spare blanks
+ * xTODO: URL.parser 
  */
 
 
@@ -57,17 +56,52 @@ public:
 };
 // TODO: Case sensitive
 
+class HtmlParser
+{
+private:
+  HtmlElem* root;
+  string doc;
 
-string readFile(const string& filename);
+  HtmlElem* isComment(const string& s, int i);
 
-HtmlElem* parseComment(const string& s, int i);
+  HtmlElem* isJavaScript(const string&s, int i);
 
-int isSelfClosing(const string& s);// * @return : 1 if it is a closing tag, 0 if it is a self-closing tag, -1 if it is 
+  HtmlElem* isCSS(const string&s, int i);
+  
+  int isSelfClosing(const string& s);
 
-HtmlElem* parseTag(const string& s, int i);
+  int isInline(const string& s);
 
-HtmlElem* parseContent(const string& s, int i);
+  HtmlElem* parseTag(const string& s, int i);
 
-HtmlElem* parseHtml(const string& s);
+  bool checkNested(HtmlElem* child);
 
-// HtmlElem* show();
+  HtmlElem* parseContent(const string& s, int i);
+
+  void parseHtml(const string& doc);
+
+public:
+  HtmlParser() {};
+  
+  void init();
+
+  void ReadHTML(string& html);
+
+  void ReadFile(const string& filename);
+
+  string showSub(HtmlElem* const root);
+
+  string show(HtmlElem* const root);
+
+  string showText(HtmlElem* const root);
+
+  string OutHTML(const string& s);
+
+  string Text(const string& s);
+
+  void debug(HtmlElem* ele);
+
+  HtmlElem* getRoot();
+
+  string getDoc();
+};
