@@ -208,7 +208,7 @@ private:
     
     for (int j = index+1; j < s.length(); j++) // Get Tag Name
     {
-      if (s[j] == ' ' or s[j] == '>'){
+      if (s[j] == ' ' or s[j] == '>' or s[j] == '\r' or s[j] == '\n' or s[j] == '\t'){
         // cout << "tagname finish:" << s[j];
         index = j;
         if (tagname == "!DOCTYPE"){
@@ -232,7 +232,7 @@ private:
       }
       
       if (st.empty() and s[j] == '>'){  // End of Tag
-        res->attribute = attribute;
+        res->attribute = cleanAndReduceWhitespace(attribute);
         res->end_index = j;
         break;
       }
@@ -255,7 +255,7 @@ private:
 
     if (child->FatherType == NORMAL_INLINE)
     {
-      if (child->SelfType == NORMAL_INLINE){
+      if (child->SelfType == NORMAL_INLINE or child->SelfType == SPECIAL_INLINE){
         return true;
       }
       else{

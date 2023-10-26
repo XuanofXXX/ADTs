@@ -57,11 +57,12 @@ int main() {
   //   cout << ecvt <<" "; 
   // }
   // cout <<endl;
-  // string a = "<a\r\n\t  \t  adfasfa a dfa af s       asf a";
-  // string cleaned = cleanAndReduceWhitespace(a);
-  // cout << cleaned;
-  string b = "<adfa>";
-  cout << b.substr(5);
+  string a = " <a\r\n\t  \t  adfasfa a dfa af s       asf a";
+  string a1 = "<a\r\n\t  \t  adfasfa a dfa af s       asf a";
+  cout << cleanAndReduceWhitespace(a) <<endl;
+  cout << cleanAndReduceWhitespace(a1) <<endl;
+  // string b = "<adfa>";
+  // cout << b.substr(5);
     //   for (int j = 0; j < s.length(); j++)
     // {
     //   if (s[j] == '"'){     // class=" >"
