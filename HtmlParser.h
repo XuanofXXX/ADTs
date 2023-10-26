@@ -10,6 +10,10 @@
 #include "DataStructure/src/Pair.cpp"
 #include "DataStructure/src/String.cpp"
 
+#define NORMAL_BLOCK 1
+#define NORMAL_INLINE 2
+#define SPECIAL_BLOCK 3
+#define SPECIAL_INLINE 4
 
 using std::string;
 using std::cout;
@@ -27,6 +31,8 @@ class HtmlElem{
 public:    
   string tag; 
   string attribute;
+  int FatherType;
+  int SelfType;
   bool selfClosing = false;
   bool endTag = false;
   int start_index;

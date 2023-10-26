@@ -33,6 +33,26 @@ std::string strip(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
+string cleanAndReduceWhitespace(const string& input) {
+    string result;
+    bool lastWasSpace = false;
+
+    for (char c : input) {
+        // 检查字符是否为空格或其他特定字符
+        if (c == ' ' || c == '\r' || c == '\n' || c == '\t') {
+            if (!lastWasSpace) {  // 如果上一个字符不是空格，则添加一个空格到结果中
+                result += ' ';
+                lastWasSpace = true;
+            }
+        } else {
+            result += c;
+            lastWasSpace = false;
+        }
+    }
+
+    return result;
+}
+
 string toLowerCase(const string& input) {
   string result = input;
   for (char& c : result) {

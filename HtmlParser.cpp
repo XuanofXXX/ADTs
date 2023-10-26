@@ -60,6 +60,27 @@ private:
     return res;
   }
 
+  HtmlElem* isCSS(const string&s, int i){
+    HtmlElem* res = new HtmlElem();
+    res->tag = "NONE";
+    if (s[i+1] == 's' && s[i+2] == 't' && s[i+3] == 'y' && s[i+4] == 'l' && s[i+5] == 'e')
+    {
+      res->tag = "CSS";
+      string script = "";
+      for (int j = i+6; j+7 < s.size(); j++){
+        if (s[j] == '<' && s[j+1] == '/' && s[j+2] == 's' && s[j+3] == 't' && s[j+4] == 'y' && s[j+5] == 'l' && s[j+6] == 'e' && s[j+7] == '>'){
+          res->attribute = script;
+          res->start_index = i;
+          res->end_index = j+7;
+          return res;
+        }
+        script += s[j];
+      }
+    }
+    return res;
+
+  }
+
   int isSelfClosing(const string& s){
     /**
      * @brief Determine whether the tag is a closing tag or not
@@ -86,20 +107,68 @@ private:
         "table", "tbody", "td", "textarea", "tfoot", "th", "thead", 
         "time", "title", "tr", "ul", "var", "video"
     };
-    for (size_t i = 0; i < 17; i++)
-    { 
-      if (s == self_closing_tags[i]){
+    for (auto & e: self_closing_tags){
+      if (s == e){
         return 1;
       }
     }
+    
 
-    for (size_t i = 0; i < 93; i++)
-    {
-      if (s == non_self_closing_tags[i]){
+    for (auto & e: non_self_closing_tags){
+      if (s == e){
         return 0;
       }
     }
+    
     return -1;
+  }
+
+  int isInline(const string& s){
+    string inline_elements[] = {
+        "a", "abbr", "acronym", "b", "bdo", "big", "br", "button", "cite", "code", "data", "datalist", 
+        "dfn", "em", "i", "img", "input", "kbd", "label", "map", "mark", "meter", "object", "output", 
+        "progress", "q", "ruby", "rbc", "rtc", "rb", "rp", "rt", "samp", "script", "select", "small", 
+        "span", "strong", "sub", "sup", "svg", "textarea", "time", "tt", "var", "wbr"
+    }; 
+
+    string block_elements[] = {
+        "address", "article", "aside", "audio", "blockquote", "canvas", "dd", "details", "div", "dl",
+        "dt", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4",
+        "h5", "h6", "header", "hgroup", "hr", "li", "main", "nav", "noscript", "ol", "output",
+        "p", "pre", "section", "table", "tfoot", "ul", "video", "figcaption", "summary", 
+        "blockquote", "figure", "hr", "menu", "ol", "ul", "pre", "address", "dialog",
+        
+        // Table related block elements
+        "caption", "colgroup", "thead", "tbody", "tr", "td", "th",
+
+        // Others
+        "template",
+
+        // else
+        "html"
+    }; 
+
+    for (const auto e: block_elements){
+      if (s == e){
+        if (s == "h" or s == "p" or s == "dt"){
+          return SPECIAL_BLOCK;
+        }
+        else{
+          return NORMAL_BLOCK;
+        }
+      }
+    }
+
+    for (const auto e: inline_elements){
+      if (s == e){
+        if (s == "a"){
+          return SPECIAL_INLINE;
+        }else{
+          return NORMAL_INLINE;
+        }
+      }
+    }
+    return 0;
   }
 
   HtmlElem* parseTag(const string& s, int i) {
@@ -123,6 +192,11 @@ private:
     }
 
     temp = isJavaScript(s,i);
+    if (temp->tag != "NONE"){
+      return temp;
+    }
+    
+    temp = isCSS(s,i);
     if (temp->tag != "NONE"){
       return temp;
     }
@@ -162,14 +236,52 @@ private:
         res->end_index = j;
         break;
       }
-
       attribute += s[j];    
     }
+
+    res->SelfType = isInline(res->tag);
 
     if (isSelfClosing(res->tag) == 1){   // Self Closing Tag
       res->selfClosing = true;
     }
+
     return res;
+  }
+
+  bool checkNested(HtmlElem* child){
+    if (child->FatherType == NORMAL_BLOCK){
+      return true;
+    }
+
+    if (child->FatherType == NORMAL_INLINE)
+    {
+      if (child->SelfType == NORMAL_INLINE){
+        return true;
+      }
+      else{
+        return false;
+      }
+    }
+    
+
+    if (child->FatherType == SPECIAL_BLOCK){
+      if (child->SelfType == NORMAL_INLINE or child->SelfType == SPECIAL_INLINE){
+        return true;
+      }
+      else{
+        return false;
+      }
+    }
+
+    if (child->FatherType == SPECIAL_INLINE){
+      if (child->tag == "a"){
+        return false;
+      }
+      else{
+        return true;
+      }
+    }
+    return true;
   }
 
   HtmlElem* parseContent(const string& s, int i){
@@ -211,6 +323,8 @@ private:
     Stack<HtmlElem*> nodeStack;
     HtmlElem* dummyRoot = new HtmlElem;
     dummyRoot->tag = "ROOT";
+    dummyRoot->SelfType = NORMAL_BLOCK;
+    dummyRoot->FatherType = NORMAL_BLOCK;
     nodeStack.push(dummyRoot);
 
     int index = 0;
@@ -218,17 +332,13 @@ private:
     while (!nodeStack.empty() && index +1 < doc.length()){
       HtmlElem* cur = nodeStack.top();
 
-      if (index > 19282){
-
-      }
       if (doc[index] == '<'){
-        if (index == 2){
-
+        if (index == 5579){
+          
         }
         HtmlElem* newEle = parseTag(doc, index);  // <node>
-        if (newEle->tag == "!doctype"){
-
-        }
+        newEle->FatherType = cur->SelfType;
+        
         if (newEle->endTag){  // </node>
           string endtag = newEle->tag.substr(1, newEle->tag.length()-1);
           if (endtag == cur->tag){
@@ -244,10 +354,19 @@ private:
           else{   // parse error
             // TODO: More Robust
             this->root = nullptr;
+            return ;
           }
         }
 
-        if (! newEle->selfClosing && newEle->tag != "COMMENT" && newEle->tag != "SCRIPT"){  // normal node
+        if (!newEle->selfClosing)
+        {
+          if (!checkNested(newEle)){
+            this->root = nullptr;
+            return ;
+          }
+        }
+
+        if (! newEle->selfClosing && newEle->tag != "COMMENT" && newEle->tag != "SCRIPT" && newEle->tag != "CSS"){  // normal node
           nodeStack.push(newEle);
         }
         cur->children.append(newEle);
@@ -305,7 +424,7 @@ public:
       st.pop();
       int num = st_indent.top();
       st_indent.pop();
-      if (cur->tag == "COMMENT" or cur->tag == "SCRIPT") continue;
+      if (cur->tag == "COMMENT" or cur->tag == "SCRIPT" or cur->tag == "CSS") continue;
       for (int i = 0; i < num; i++)
       {
         res += '\t';
@@ -341,7 +460,7 @@ public:
       st.pop();
       int num = st_indent.top();
       st_indent.pop();
-      if (cur->tag == "COMMENT" or cur->tag == "SCRIPT") continue;
+      if (cur->tag == "COMMENT" or cur->tag == "SCRIPT" or cur->tag == "CSS") continue;
       for (int i = 0; i < num; i++)
       {
         res += '\t';
@@ -373,7 +492,7 @@ public:
     {
       HtmlElem* cur = st.top();
       st.pop();
-      if (cur->tag == "COMMENT" or cur->tag == "SCRIPT") continue;
+      if (cur->tag == "COMMENT" or cur->tag == "SCRIPT" or cur->tag == "CSS") continue;
       if (cur->tag == "CONTENT") {
         res += cur->attribute + '\n';
       }
@@ -385,12 +504,12 @@ public:
   }
 
   string OutHTML(const string& s){
-    if (s == "/"){
-      return showSub(root);
-    }
-
     if (root == nullptr){
       return "Illegal HTML file";
+    }
+    
+    if (s == "/"){
+      return showSub(root);
     }
 
     List<string> res;
@@ -441,6 +560,11 @@ public:
   }
 
   string Text(const string& s){
+  if (root == nullptr)
+  {
+    return "Illegal HTML";
+  }
+  
   if (s == "/"){
     return showText(root);
   }
