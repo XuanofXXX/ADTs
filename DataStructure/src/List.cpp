@@ -125,6 +125,7 @@ public:
     for (int i = index; i < size()-1;i++){
       data[i] = data[i+1];
     }
+    delete data[index];
     dataSize --;
   }
 
@@ -151,7 +152,6 @@ public:
     return res;
   }
 
-  // judge 回文
   bool judgeHuiwen(){
     if (size() <= 1) return true;
     int begin = 0, end = size()-1;
@@ -163,7 +163,6 @@ public:
     return true;
   }
 
-  // reverse
   void reverse(){
     int begin = 0, end = size()-1;
     while (begin<end){
@@ -180,7 +179,6 @@ public:
     if (index >= size() || index < 0) throw "index out of range";
     return data[index];
   }
-
 
   List<Elemtype> operator+(const List<Elemtype> &other){
     List<Elemtype> res;

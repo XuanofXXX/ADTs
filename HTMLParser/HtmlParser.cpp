@@ -352,7 +352,7 @@ private:
             continue;
           }
           else{   // parse error
-            // TODO: More Robust
+            // TODO: read incomplete Html file
             this->root = nullptr;
             return ;
           }
@@ -389,6 +389,7 @@ public:
   HtmlParser() {};
 
   void init(){
+    cout << "正在解析中..." <<endl;
     parseHtml(this->doc);
   }
 
@@ -410,7 +411,7 @@ public:
     file.close();
     string s = buffer.str();
     this->doc = s;
-    return ;
+    init();
   }
 
   string showSub(HtmlElem* const root){
