@@ -352,7 +352,7 @@ private:
             continue;
           }
           else{   // parse error
-            // TODO: More Robust
+            // TODO: read incomplete Html file
             this->root = nullptr;
             return ;
           }

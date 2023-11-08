@@ -17,15 +17,6 @@ using std::string;
 using std::cout;
 using std::endl;
 
-/**
- * xTODO: Add comments
- * xTODO: Path:  
- * xTODO: Ignore comment, CSS, script;
- * xTODO: Remove spare blanks
- * xTODO: URL.parser 
- */
-
-
 class HtmlElem{
 public:    
   string tag; 
@@ -54,7 +45,6 @@ public:
     children.append(other);
   }
 };
-// TODO: Case sensitive
 
 class HtmlParser
 {
