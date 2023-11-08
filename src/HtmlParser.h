@@ -7,6 +7,7 @@
 #include "DataStructure/src/Stack.cpp"
 #include "DataStructure/src/Queue.cpp"
 #include "DataStructure/src/String.cpp"
+#include "HtmlNode.h"
 
 #define NORMAL_BLOCK 1
 #define NORMAL_INLINE 2
@@ -17,43 +18,6 @@ using std::string;
 using std::cout;
 using std::endl;
 
-/**
- * xTODO: Add comments
- * xTODO: Path:  
- * xTODO: Ignore comment, CSS, script;
- * xTODO: Remove spare blanks
- * xTODO: URL.parser 
- */
-
-
-class HtmlElem{
-public:    
-  string tag; 
-  string attribute;
-  int FatherType;
-  int SelfType;
-  bool selfClosing = false;
-  bool endTag = false;
-  int start_index;
-  int end_index;
-
-  List<HtmlElem*> children;
-
-  HtmlElem(){};
-
-  HtmlElem(string tag){
-    this->tag = tag;
-  }
-
-  HtmlElem(string tag, string attribute){
-    this->tag = tag;
-    this->attribute = attribute;
-  }
-
-  void append(HtmlElem* other){
-    children.append(other);
-  }
-};
 // TODO: Case sensitive
 
 class HtmlParser
