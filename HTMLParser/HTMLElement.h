@@ -2,11 +2,22 @@
 #define HTMLELEMENT_H
 
 #include "../DataStructure/src/List.cpp"
-#include <string>
 #include <map>
+#include <string>
 
-using std::string;
+#define NORMAL_BLOCK 1
+#define NORMAL_INLINE 2
+#define SPECIAL_BLOCK 3
+#define SPECIAL_INLINE 4
+
+#define CONTENT "CONTENT"
+#define COMMENT "COMMENT"
+#define JAVASCRIPT "JAVASCRIPT"
+#define CSS "CSS"
+#define NONE "NONE"
+
 using std::map;
+using std::string;
 
 class HtmlElem {
 public:

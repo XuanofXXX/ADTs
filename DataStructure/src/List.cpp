@@ -48,6 +48,15 @@ public:
     // std::cout << "Delete"<< std::endl;
   }
 
+  Elemtype* begin() {
+    return data;
+  }
+
+  // 返回指向数据结束的迭代器
+  Elemtype* end() {
+    return data + dataSize;
+  }
+
   void clear() {
     dataSize = 0;
     dataCapacity = 8;

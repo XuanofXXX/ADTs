@@ -1,6 +1,6 @@
 #include "./HtmlParser.h"
 
-HtmlElem* HtmlParser::isComment(int i) {
+HtmlElem *HtmlParser::isComment(int i) {
   /**
    * \@brief
    * \@param: s: string
@@ -26,7 +26,7 @@ HtmlElem* HtmlParser::isComment(int i) {
   return res;
 };
 
-HtmlElem* HtmlParser::isJavaScript(int i) {
+HtmlElem *HtmlParser::isJavaScript(int i) {
   /**
    * @brief Determine whether the tag is a JavaScript or not
    * @param s: string
@@ -55,7 +55,7 @@ HtmlElem* HtmlParser::isJavaScript(int i) {
   return res;
 }
 
-HtmlElem * HtmlParser::isCSS(int i) {
+HtmlElem *HtmlParser::isCSS(int i) {
   HtmlElem *res = new HtmlElem();
   res->tag = NONE;
   if (doc[i + 1] == 's' && doc[i + 2] == 't' && doc[i + 3] == 'y' &&
@@ -157,7 +157,7 @@ int HtmlParser::isInline(const string &tag) {
       // else
       "html"};
 
-  for (const auto e : block_elements) {
+  for (const auto &e : block_elements) {
     if (tag == e) {
       if (tag == "h" or tag == "p" or tag == "dt") {
         return SPECIAL_BLOCK;
@@ -167,7 +167,7 @@ int HtmlParser::isInline(const string &tag) {
     }
   }
 
-  for (const auto e : inline_elements) {
+  for (const auto &e : inline_elements) {
     if (tag == e) {
       if (tag == "a") {
         return SPECIAL_INLINE;
@@ -467,7 +467,8 @@ string HtmlParser::showSub(HtmlElem *const root) {
 }
 
 string HtmlParser::show(HtmlElem *const root) {
-  if (root == nullptr) throw "Show Null pointer";
+  if (root == nullptr)
+    throw "Show Null pointer";
   string res = "";
   Stack<HtmlElem *> st;
   Stack<int> st_indent;
@@ -505,7 +506,8 @@ string HtmlParser::show(HtmlElem *const root) {
 }
 
 string HtmlParser::showText(HtmlElem *const root) {
-  if (root == nullptr) throw "Show Null pointer for text!";
+  if (root == nullptr)
+    throw "Show Null pointer for text!";
   string res = "";
   Stack<HtmlElem *> st;
   st.push(root);
@@ -530,6 +532,7 @@ string HtmlParser::showText(HtmlElem *const root) {
 }
 
 string HtmlParser::OutHTML(const string &s) {
+  //
   if (root == nullptr) {
     return "Illegal HTML file";
   }
@@ -581,6 +584,78 @@ string HtmlParser::OutHTML(const string &s) {
     ans += show(cur);
   }
   return ans;
+}
+
+List<HtmlElem *> selectXPath(const string &path) {
+  List<HtmlElem *> result;
+
+  // Parse the XPath path into a list of element selectors and operators.
+  List<string> selectors;
+  List<string> operators;
+  string selector = "";
+  for (char c : path) {
+    if (c == '/') {
+      if (!selector.empty()) {
+        selectors.append(selector);
+        selector = "";
+      }
+      operators.append("/");
+    } else if (c == '@') {
+      operators.append("@");
+    } else {
+      selector += c;
+    }
+  }
+  if (!selector.empty()) {
+    selectors.append(selector);
+  }
+
+  // Start from the root element.
+  Queue<HtmlElem *> queue;
+  queue.enqueue(root);
+
+  // Traverse the elements tree.
+  for (int i = 0; i < selectors.size(); i++) {
+    string selector = selectors[i];
+    string op = operators[i];
+    int size = queue.getSize();
+    for (int j = 0; j < size; j++) {
+      HtmlElem *elem = queue.peek();
+      queue.dequeue();
+      if (op == "/") {
+        for (HtmlElem *child : elem->children) {
+          if (child->tag == selector) {
+            queue.enqueue(child);
+          }
+        }
+      } else if (op == "//") {
+        for (HtmlElem *child : elem->children) {
+          if (child->tag == selector) {
+            result.push_back(child);
+          }
+          queue.enqueue(child);
+        }
+      } else if (op == ".") {
+        if (elem->tag == selector) {
+          result.push_back(elem);
+        }
+      } else if (op == "..") {
+        if (elem->parent && elem->parent->tag == selector) {
+          result.push_back(elem->parent);
+        }
+      } else if (op == "@") {
+        if (elem->attributes.count(selector)) {
+          // Create a new HtmlElem to represent the attribute.
+          HtmlElem *attr = new HtmlElem;
+          attr->tag = selector;
+          attr->text = elem->attributes[selector];
+          result.push_back(attr);
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 string HtmlParser::Text(const string &s) {
@@ -651,3 +726,77 @@ void HtmlParser::debug(HtmlElem *ele) {
 HtmlElem *HtmlParser::getRoot() { return this->root; }
 
 string HtmlParser::getDoc() { return this->doc; }
+
+// List<HtmlElem*> HtmlParser::XPathSelect(const string& path) {
+//   List<HtmlElem*> result;
+
+//   // Parse the XPath path into a list of element selectors and operators.
+//   List<string> selectors;
+//   List<string> operators;
+//   string selector = "";
+//   for (char c : path) {
+//     if (c == '/') {
+//       if (!selector.empty()) {
+//         selectors.append(selector);
+//         selector = "";
+//       }
+//       operators.append("/");
+//     } else if (c == '@') {
+//       operators.append("@");
+//     } else {
+//       selector += c;
+//     }
+//   }
+//   if (!selector.empty()) {
+//     selectors.append(selector);
+//   }
+
+//   // Start from the root element.
+//   Queue<HtmlElem*> queue;
+//   queue.enqueue(root);
+
+//   // Traverse the elements tree.
+//   for (int i = 0; i < selectors.size(); i++) {
+//     string selector = selectors[i];
+//     string op = operators[i];
+//     int size = queue.getSize();
+//     for (int j = 0; j < size; j++) {
+//       HtmlElem* elem = queue.peek();
+//       queue.dequeue();
+//       if (op == "/") {
+//         for (HtmlElem* child : elem->children) {
+//           if (child->tag == selector) {
+//             queue.enqueue(child);
+//           }
+//         }
+//       } else if (op == "//") {
+//         for (HtmlElem* child : elem->children) {
+//           if (child->tag == selector) {
+//             result.append(child);
+//           }
+//           queue.enqueue(child);
+//         }
+//       } else if (op == ".") {
+//         if (elem->tag == selector) {
+//           result.append(elem);
+//         }
+//       } else if (op == "..") {
+//         if (elem->parent && elem->parent->tag == selector) {
+//           result.push_back(elem->parent);
+//         }
+//       } else if (op == "@") {
+//         if (elem->attributes.count(selector)) {
+//           // Create a new HtmlElem to represent the attribute.
+//           HtmlElem* attr = new HtmlElem;
+//           attr->tag = selector;
+//           attr->text = elem->attributes[selector];
+//           result.push_back(attr);
+//         }
+//       }
+//     }
+//   }
+
+//   return result;
+// }
+}
+;
