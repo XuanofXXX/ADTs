@@ -17,31 +17,24 @@ struct SelectorPart {
 
 struct SelectorInfo {
   Type type = CSS_NONE;
-  List<SelectorPart> parts; // 存储选择器的各个部分
+  List<SelectorPart*> parts; // 存储选择器的各个部分
   SelectorInfo(): type(CSS_NONE){}
-  SelectorInfo(List<SelectorPart> parts) : parts(parts) {}
+  SelectorInfo(List<SelectorPart*> parts) : parts(parts) {}
   SelectorInfo(Type type) : type(type) {}
 };
 
-class CssSelector {
-public:
-  void parseSelector(const string &selector);
+bool _matchTag(HtmlElem *element, const string &tagName);
+bool _matchClass(HtmlElem *element, const string &className);
+bool _matchID(HtmlElem *element, const string &idName);
+bool _matchAttribute(HtmlElem *element, const string &attributeName,
+                    const string &attributeValue);
 
-  List<HtmlElem *> matchElements(HtmlElem *root);
+bool match(HtmlElem* ele, SelectorInfo* info);
 
-private:
+namespace CssSelector {
   // 解析器辅助函数
-  SelectorInfo parseSimpleSelector(const string &selectorPart);
+  SelectorInfo* _parseNode(const string &selectorPart);
   
-  // 匹配器辅助函数
-  bool matchTag(HtmlElem *element, const string &tagName);
-  bool matchClass(HtmlElem *element, const string &className);
-  bool matchID(HtmlElem *element, const string &idName);
-  bool matchAttribute(HtmlElem *element, const string &attributeName,
-                      const string &attributeValue);
-
-  // 存储解析后的选择器信息
-  List<SelectorInfo> parsedSelector;
-
+  List<SelectorInfo*> parseSelector(const string &selector); // 解析选择器
 };
 #endif

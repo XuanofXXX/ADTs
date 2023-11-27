@@ -4,15 +4,15 @@
 #include "./CssSelector.h"
 #include "CssSelector.h"
 
-bool CssSelector::matchTag(HtmlElem *element, const string &tagName) {
+bool _matchTag(HtmlElem *element, const string &tagName) {
   if (element == nullptr)
     return false;
-  if (element->tag == tagName)
+  if (element->tag == "" || element->tag == "*" || element->tag == tagName)
     return true;
   return false;
 }
 
-bool CssSelector::matchClass(HtmlElem *element, const string &className) {
+bool _matchClass(HtmlElem *element, const string &className) {
   if (element == nullptr)
     return false;
   List<string> classes = split(element->attrs["class"], ' ');
@@ -23,7 +23,7 @@ bool CssSelector::matchClass(HtmlElem *element, const string &className) {
   return false;
 }
 
-bool CssSelector::matchID(HtmlElem *element, const string &idName) {
+bool _matchID(HtmlElem *element, const string &idName) {
   if (element == nullptr)
     return false;
   if (element->attrs["id"] == idName)
@@ -31,8 +31,9 @@ bool CssSelector::matchID(HtmlElem *element, const string &idName) {
   return false;
 }
 
-bool CssSelector::matchAttribute(HtmlElem *element, const string &attributeName,
-                                 const string &attributeValue) {
+bool _matchAttribute(HtmlElem *element,
+                                  const string &attributeName,
+                                  const string &attributeValue) {
   if (element == nullptr)
     return false;
   auto it = element->attrs.find(attributeName);
@@ -43,16 +44,115 @@ bool CssSelector::matchAttribute(HtmlElem *element, const string &attributeName,
   return false;
 }
 
-SelectorInfo CssSelector::parseSimpleSelector(const string &simple_part) {
-  SelectorInfo info;
-  SelectorPart part;
+bool match(HtmlElem* ele, SelectorInfo* info){
+  for (int i = 0; i < info->parts.size(); i++)
+  {
+    if (info->parts[i]->type == ID){
+      if (!_matchID(ele, info->parts[i]->value))
+        return false;
+    }
+    else if (info->parts[i]->type == CLASS){
+      if (!_matchClass(ele, info->parts[i]->value))
+        return false;
+    }
+    else if (info->parts[i]->type == TAG){
+      if (!_matchTag(ele, info->parts[i]->value))
+        return false;
+    }
+    else if (info->parts[i]->type == ATTRIBUTE){
+      if (!_matchAttribute(ele, info->parts[i]->value, info->parts[i]->attributeValue))
+        return false;
+    }
+  }
+  return true;
+}
+
+SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
+  /**
+   * @brief Parse one node with some restraints
+   * pass test 1~5
+   */
+  SelectorInfo *info = new SelectorInfo();
+  SelectorPart *part = new SelectorPart();
 
   bool inClass = false, inID = false, inAttr = false, inAttrValue = false,
-       inAttrName = false;
+       inAttrName = false, inName = true;
 
   string attrName = "", attrValue = "", className = "", tagName = "";
 
   for (int i = 0; i < simple_part.size(); i++) {
+    if (inClass) {
+      if (simple_part[i] == '.' || simple_part[i] == '#' ||
+          simple_part[i] == ' ' || simple_part[i] == '[') {
+        part->type = CLASS;
+        part->value = className;
+        info->parts.append(part);
+        className = "";
+        part = new SelectorPart();
+        inClass = false;
+        i--;
+        // if (simple_part[i] == '.')
+        //   inClass = true;
+        // if (simple_part[i] == '#')
+        //   inID = true;
+        // if (simple_part[i] == '[') {
+        //   inAttr = true;
+        //   inAttrName = true;
+        // }
+      } else {
+        className += simple_part[i];
+      }
+    } else if (inAttr) {
+      if (simple_part[i] == '=') {
+        inAttrName = false;
+        inAttrValue = true;
+        continue;
+      } else if (simple_part[i] == ']') {
+        inAttr = false;
+        inAttrName = false;
+        inAttrValue = false;
+        part->type = ATTRIBUTE;
+        part->value = attrName;
+        part->attributeValue = attrValue;
+        info->parts.append(part);
+        attrName = "";
+        attrValue = "";
+        part = new SelectorPart();
+        continue;
+      }
+      if (inAttrName) {
+        attrName += simple_part[i];
+      }
+      if (inAttrValue) {
+        attrValue += simple_part[i];
+      }
+    } else if (inID) {
+      if (simple_part[i] == '.' || simple_part[i] == '#' ||
+          simple_part[i] == ' ' || simple_part[i] == '[') {
+        part->type = ID;
+        part->value = tagName;
+        info->parts.append(part);
+        tagName = "";
+        part = new SelectorPart();
+        inID = false;
+        i--;
+      } else {
+        tagName += simple_part[i];
+      }
+    } else if (inName) {
+      if (simple_part[i] == '.' || simple_part[i] == '#' ||
+          simple_part[i] == ' ' || simple_part[i] == '[') {
+        part->type = TAG;
+        part->value = tagName;
+        info->parts.append(part);
+        tagName = "";
+        part = new SelectorPart();
+        inName = false;
+        i--;
+      } else {
+        tagName += simple_part[i];
+      }
+    }
     if (simple_part[i] == '.') {
       inClass = true;
       continue;
@@ -64,95 +164,63 @@ SelectorInfo CssSelector::parseSimpleSelector(const string &simple_part) {
       inAttrName = true;
       continue;
     }
+  }
+  if (part->type == CSS_NONE) {
     if (inClass) {
-      if (simple_part[i] == '.' || simple_part[i] == '#' ||
-          simple_part[i] == ' ') {
-        part.type = CLASS;
-        part.value = className;
-        info.parts.append(part);
-        className = "";
-        part = SelectorPart();
-        inClass = false;
-        if (simple_part[i] == '.')
-          inClass = true;
-      }
-      className += simple_part[i];
-    }
-    if (inAttr) {
-      if (simple_part[i] == '=') {
-        inAttrName = false;
-        inAttrValue = true;
-        continue;
-      }
-      if (simple_part[i] == ']') {
-        inAttr = false;
-        inAttrName = false;
-        inAttrValue = false;
-        part.type = ATTRIBUTE;
-        part.value = attrName;
-        part.attributeValue = attrValue;
-        info.parts.append(part);
-        attrName = "";
-        attrValue = "";
-        part = SelectorPart();
-        continue;
-      }
-      if (inAttrName) {
-        attrName += simple_part[i];
-      }
-      if (inAttrValue) {
-        attrValue += simple_part[i];
-      }
-    }
-    if (inID) {
-      if (simple_part[i] == '.' || simple_part[i] == '#' ||
-          simple_part[i] == ' ') {
-        part.type = ID;
-        part.value = tagName;
-        info.parts.append(part);
-        tagName = "";
-        part = SelectorPart();
-        inID = false;
-      }
-      tagName += simple_part[i];
+      part->type = CLASS;
+      part->value = className;
+      info->parts.append(part);
+    } else if (inAttr) {
+      part->type = ATTRIBUTE;
+      part->value = attrName;
+      part->attributeValue = attrValue;
+      info->parts.append(part);
+    } else if (inID) {
+      part->type = ID;
+      part->value = tagName;
+      info->parts.append(part);
+    } else if (inName) {
+      part->type = TAG;
+      part->value = tagName;
+      info->parts.append(part);
     }
   }
-  if (part.type == CSS_NONE)
-    info.parts.append(part);
   return info;
 }
 
-void CssSelector::parseSelector(const string &selector) {
-  parsedSelector; // 使用列表存储解析后的选择器部分
+List<SelectorInfo*> CssSelector::parseSelector(const string &selector) {
+  List<SelectorInfo*> Info; // 使用列表存储解析后的选择器部分
   int begin_index = 0;
   int end_index = 0;
+  SelectorInfo* info = new SelectorInfo();
   for (int i = 0; i < selector.size(); i++) {
-    SelectorInfo info;
     if (selector[i] == ' ') {
-      info.type = DESCENDANT;
+      info->type = DESCENDANT;
     } else if (selector[i] == '>') {
-      info.type = CHILD;
+      info->type = CHILD;
     } else if (selector[i] == ',') {
-      info.type = GROUP;
+      info->type = GROUP;
     } else if (selector[i] == '~') {
-      info.type = BROTHER;
+      info->type = BROTHER;
     } else if (selector[i] == '+') {
-      info.type = FIRST_CHILD;
+      info->type = FIRST_CHILD;
     } else {
       end_index = i;
     }
-    if (info.type != CSS_NONE) {
-      parsedSelector.append(info);
-      info = SelectorInfo(parseSimpleSelector(
-          selector.substr(begin_index, end_index - begin_index)));
+    if (info->type != CSS_NONE) {
+      SelectorInfo* node = _parseNode(
+          selector.substr(begin_index, end_index - begin_index + 1));
       begin_index = i + 1;
-      parsedSelector.append(info);
+      Info.append(node);
+      Info.append(info);
+      info = new SelectorInfo();
     }
   }
   if (begin_index < selector.size()) {
-    parsedSelector.append(SelectorInfo(parseSimpleSelector(
-        selector.substr(begin_index, selector.size() - begin_index))));
+    Info.append(_parseNode(
+        selector.substr(begin_index, selector.size() - begin_index)));
   }
+  return Info;
 }
 
 #endif
