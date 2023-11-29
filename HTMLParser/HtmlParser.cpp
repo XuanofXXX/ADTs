@@ -470,7 +470,16 @@ Node<HtmlElem *> *HtmlParser::_traverse(HtmlElem *root, SelectorInfo *info) {
   }
   LinkList<HtmlElem *> *res = new LinkList<HtmlElem *>();
   Stack<HtmlElem *> st;
-  st.push(root);
+  Node<HtmlElem *> *node = root->children->next;
+  List<Node<HtmlElem *> *> l;
+  while (node) {
+    l.append(node);
+    node = node->next;
+  }
+  for (int i = l.size() - 1; i >= 0; i--) {
+    st.push(l[i]->data);
+  }
+  // st.push(root);
   HtmlElem *cur = nullptr;
   while (!st.empty()) {
     cur = st.top();
@@ -495,8 +504,10 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
   if (root == nullptr) {
     return nullptr;
   }
-  LinkList<HtmlElem *> *res = new LinkList<HtmlElem *>();
+
+  Queue<HtmlElem *> tempNode;
   LinkList<SelectorInfo *> selectors = CssSelector::parseSelector(s);
+
   if (selectors.size() == 1) {
     return _traverse(root, selectors[0]);
   }
@@ -504,23 +515,13 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
   st.push(root);
 
   SelectorInfo *first = selectors[0];
-  SelectorInfo *relation = selectors[1];
-  SelectorInfo *second = selectors[2];
 
   while (!st.empty()) {
     HtmlElem *cur = st.top();
     st.pop();
-    if (relation->type == GROUP) {
-      if (match(cur, first) || match(cur, second)) {
-        if (!exist(res, cur))
-          res->append(cur);
-      }
-    } else {
-      if (match(cur, first)) {
-        res->append(cur);
-      }
+    if (match(cur, first)) {
+      tempNode.enqueue(cur);
     }
-
     Node<HtmlElem *> *node = cur->children->next;
     List<Node<HtmlElem *> *> l;
     while (node) {
@@ -532,64 +533,77 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
     }
   }
 
-  if (relation->type == GROUP) {
-    return res->head;
-  }
-
-  while (!st.empty()) {
-    st.pop();
-  }
-  // st = Stack<HtmlElem *>();
-  LinkList<HtmlElem *> *ans = new LinkList<HtmlElem *>();
-  Node<HtmlElem *> *boss = res->head->next;
-  while (boss) {
-    // Traverse the
-    if (relation->type == DESCENDANT) {
-      Node<HtmlElem *> *tempNode = _traverse(boss->data, second);
-      Node<HtmlElem *> *cur = tempNode->next;
-      while (cur) {
-        if (exist(ans, cur->data)) {
-          cur = cur->next;
-          continue;
-        } else {
-          ans->append(cur->data);
-        }
-        cur = cur->next;
-      }
-    } else if (relation->type == BROTHER) {
-      HtmlElem *bro = boss->data->brother;
-      while (bro != nullptr) {
-        if (match(bro, second)) {
-          ans->append(bro->brother);
-        }
-        bro = bro->brother;
-      }
-    } else if (relation->type == FIRST_BROTHER) {
-      if (boss->data->brother != nullptr) {
-        if (match(boss->data->brother, second)) {
-          ans->append(boss->data->brother);
-        }
-      }
-    } else if (relation->type == CHILD) {
-      Node<HtmlElem *> *child = boss->data->children;
-      child = child->next;
-      while (child) {
-        if (match(child->data, second)) {
-          ans->append(child->data);
-        }
-        child = child->next;
-      }
-
-      // for (int j = 0; j < boss->data->children.size(); j++) {
-      //   if (match(boss->data->children[j], second)) {
-      //     ans->append(boss->data->children[j]);
-      //   }
-      // }
+  for (int i = 1; i < selectors.size() - 1; i += 2) {
+    SelectorInfo *relation = selectors[i];
+    SelectorInfo *second = selectors[i + 1];
+    while (!st.empty()) {
+      st.pop();
     }
-    boss = boss->next;
+    int queue_size = tempNode.getSize();
+    for (int j = 0; j < queue_size; j++) {
+      HtmlElem *boss = tempNode.peek();
+      tempNode.dequeue();
+      if (relation->type == DESCENDANT) {
+        Node<HtmlElem *> *traverse_node = _traverse(boss, second);
+        Node<HtmlElem *> *cur = traverse_node->next;
+        while (cur) {
+          if (exist(tempNode, cur->data)) {
+            cur = cur->next;
+            continue;
+          } else {
+            tempNode.enqueue(cur->data);
+          }
+          cur = cur->next;
+        }
+      } else if (relation->type == BROTHER) {
+        HtmlElem *bro = boss->brother;
+        while (bro != nullptr) {
+          if (match(bro, second)) {
+            tempNode.enqueue(bro);
+          }
+          bro = bro->brother;
+        }
+      } else if (relation->type == FIRST_BROTHER) {
+        if (boss->brother != nullptr) {
+          if (match(boss->brother, second)) {
+            tempNode.enqueue(boss->brother);
+          }
+        }
+      } else if (relation->type == CHILD) {
+        Node<HtmlElem *> *child = boss->children;
+        child = child->next;
+        while (child) {
+          if (match(child->data, second)) {
+            tempNode.enqueue(child->data);
+          }
+          child = child->next;
+        }
+      } else if (relation->type == GROUP) {
+        tempNode.enqueue(boss);
+        Node<HtmlElem *> *traverse_node = _traverse(root, second);
+        Node<HtmlElem *> *cur = traverse_node->next;
+        while (cur) {
+          if (exist(tempNode, cur->data)) {
+            cur = cur->next;
+            continue;
+          } else {
+            tempNode.enqueue(cur->data);
+          }
+          cur = cur->next;
+        }
+      }
+    }
   }
-  return ans->head;
+  Node<HtmlElem*>* dummyHead = new Node<HtmlElem*>();
+  Node<HtmlElem*>* cur = dummyHead;
+  while (!tempNode.empty()) {
+    cur->next = new Node<HtmlElem*>(tempNode.peek());
+    tempNode.dequeue();
+    cur = cur->next;
+  }
+  return dummyHead;
 }
+
 
 /*
 List<HtmlElem *> selectXPath(const string &path) {

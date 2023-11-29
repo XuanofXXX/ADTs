@@ -69,4 +69,15 @@ public:
         }
         return front->data;
     }
+
+    T& at(int index){
+        if (index < 0 || index >= size) {
+            throw std::out_of_range("Index is out of range");
+        }
+        Node* temp = front;
+        for (int i = 0; i < index; i++) {
+            temp = temp->next;
+        }
+        return temp->data;
+    }
 };

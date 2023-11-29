@@ -48,12 +48,19 @@ public:
   }
 
   void append(HtmlElem *other) {
-    Node<HtmlElem*>* dummyNode = children;
-    while (dummyNode->next)
-    {
+    Node<HtmlElem *> *dummyNode = children;
+    while (dummyNode->next) {
       dummyNode = dummyNode->next;
     }
-    dummyNode->next = new Node<HtmlElem*>(other);
+    dummyNode->next = new Node<HtmlElem *>(other);
+  }
+  bool operator==(const HtmlElem &other) const {
+    return tag == other.tag && attribute == other.attribute &&
+           attrs == other.attrs && father == other.father &&
+           brother == other.brother && fatherType == other.fatherType &&
+           SelfType == other.SelfType && selfClosing == other.selfClosing &&
+           endTag == other.endTag && start_index == other.start_index &&
+           end_index == other.end_index;
   }
 };
 
