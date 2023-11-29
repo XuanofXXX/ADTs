@@ -4,6 +4,11 @@
 #include "Layout.h"
 
 string Layout::showSub(HtmlElem *const root) {
+  /**
+   * @brief Traverses from root, prints text content of descendants. Doesn't
+   * include root info.
+   *
+   */
   string res = "";
   Stack<HtmlElem *> st;
   Stack<int> st_indent;
@@ -28,15 +33,33 @@ string Layout::showSub(HtmlElem *const root) {
     } else {
       res += "<" + cur->tag + cur->attribute + ">\n";
     }
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st_indent.push(num + 1);
-      st.push(cur->children[i]);
+
+    Node<HtmlElem *> *node = cur->children->next;
+    List<Node<HtmlElem *> *> l;
+    while (node) {
+      l.append(node);
+      node = node->next;
     }
+    for (int i = l.size() - 1; i >= 0; i--) {
+      st_indent.push(num + 1);
+      st.push(l[i]->data);
+    }
+
+    // for (int i = cur->children.size() - 1; i >= 0; i--) {
+    //   st_indent.push(num + 1);
+    //   st.push(cur->children[i]);
+    // }
   }
   return res;
 }
 
 string Layout::show(HtmlElem *const root) {
+  /**
+   * @brief This function prints the entire structure of the tree, starting from
+   * the root node. It includes the root node and all its descendant nodes in
+   * the output.
+   *
+   */
   if (root == nullptr)
     throw "Show Null pointer";
   string res = "";
@@ -65,17 +88,32 @@ string Layout::show(HtmlElem *const root) {
         res += "<" + cur->tag + cur->attribute + ">\n";
       }
     }
-
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st_indent.push(num + 1);
-      st.push(cur->children[i]);
+    
+    Node<HtmlElem *> *node = cur->children->next;
+    List<Node<HtmlElem *> *> l;
+    while (node) {
+      l.append(node);
+      node = node->next;
     }
+    for (int i = l.size() - 1; i >= 0; i--) {
+      st_indent.push(num + 1);
+      st.push(l[i]->data);
+    }
+
+    // for (int i = cur->children.size() - 1; i >= 0; i--) {
+    //   st_indent.push(num + 1);
+    //   st.push(cur->children[i]);
+    // }
   }
   res += "</" + startTag + ">\n";
   return res;
 }
 
 string Layout::showText(HtmlElem *const root) {
+  /**
+   * @brief This function shows the all CONTENT nodes in the tree under the
+   * root.
+   */
   if (root == nullptr)
     throw "Show Null pointer for text!";
   string res = "";
@@ -94,15 +132,28 @@ string Layout::showText(HtmlElem *const root) {
         res += cur->attribute + '\n';
       }
     }
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st.push(cur->children[i]);
+    Node<HtmlElem *> *node = cur->children->next;
+    List<Node<HtmlElem *> *> l;
+    while (node) {
+      l.append(node);
+      node = node->next;
     }
+    for (int i = l.size() - 1; i >= 0; i--) {
+      // st_indent.push(num + 1);
+      st.push(l[i]->data);
+    }
+
+    // for (int i = cur->children.size() - 1; i >= 0; i--) {
+    //   st.push(cur->children[i]);
+    // }
   }
   return res;
 }
 
 string Layout::OutHTML(HtmlElem* root, const string &s) {
-  //
+  /**
+   * @brief parse Xpath.
+   */
   if (root == nullptr) {
     return "Illegal HTML file";
   }
@@ -136,13 +187,24 @@ string Layout::OutHTML(HtmlElem* root, const string &s) {
     for (int time = 0; time < size; time++) {
       cur = qe.peek();
       qe.dequeue();
-      for (int j = 0; j < cur->children.size(); j++) {
-        HtmlElem *Node = cur->children[j];
-        if (cur->children[j]->tag == node) {
+
+      Node<HtmlElem*>* child = cur->children;
+      child = child->next;
+      while (child)
+      {
+        if (child->data->tag == node) {
           found = true;
-          qe.enqueue(cur->children[j]);
+          qe.enqueue(child->data);
         }
+        child = child->next;
       }
+      // for (int j = 0; j < cur->children.size(); j++) {
+      //   HtmlElem *Node = cur->children[j];
+      //   if (cur->children[j]->tag == node) {
+      //     found = true;
+      //     qe.enqueue(cur->children[j]);
+      //   }
+      // }
     }
     if (found == false)
       return NONE;
@@ -194,13 +256,14 @@ string Layout::Text(HtmlElem* root, const string &s) {
     for (int time = 0; time < size; time++) {
       cur = qe.peek();
       qe.dequeue();
-      for (int j = 0; j < cur->children.size(); j++) {
-        // HtmlElem *Node = cur->children[j];
-        if (cur->children[j]->tag == node) {
-          found = true;
-          qe.enqueue(cur->children[j]);
-        }
-      }
+
+      // for (int j = 0; j < cur->children.size(); j++) {
+      //   // HtmlElem *Node = cur->children[j];
+      //   if (cur->children[j]->tag == node) {
+      //     found = true;
+      //     qe.enqueue(cur->children[j]);
+      //   }
+      // }
     }
     if (found == false)
       return NONE;

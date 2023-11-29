@@ -2,7 +2,6 @@
 #define HTMLPARSER_CPP
 
 #include "HtmlParser.h"
-#include <memory>
 
 HtmlElem *HtmlParser::_isComment(int i) {
   /**
@@ -342,7 +341,7 @@ void HtmlParser::_parseHtml() {
         if (endtag == cur->tag) {
           nodeStack.pop();
           cur = nodeStack.top();
-          cur->children.append(newEle);
+          cur->append(newEle);
           index = newEle->end_index + 1;
           continue;
         } else { // parse error
@@ -362,13 +361,13 @@ void HtmlParser::_parseHtml() {
           newEle->tag != JAVASCRIPT && newEle->tag != CSS) { // normal node
         nodeStack.push(newEle);
       }
-      cur->children.append(newEle);
+      cur->append(newEle);
       index = newEle->end_index + 1;
     } else {
       HtmlElem *newEle = _parseContent(index); // content
       newEle->fatherType = cur->SelfType;
       if (newEle->attribute != "")
-        cur->children.append(newEle);
+        cur->append(newEle);
       index = newEle->end_index + 1;
     }
   }
@@ -378,16 +377,19 @@ void HtmlParser::_parseHtml() {
   while (!que.empty()) {
     HtmlElem *cur = que.peek();
     que.dequeue();
-    for (int i = 0; i < cur->children.size() - 1; i++) {
-      cur->children[i]->brother = cur->children[i + 1];
-
-      // cur->children[i]->brother = cur->children[i + 1];
+    Node<HtmlElem *> *child = cur->children->next;
+    List<Node<HtmlElem *> *> l;
+    while (child) {
+      l.append(child);
+      if (child->next == nullptr) {
+        child->data->brother = nullptr;
+      } else {
+        child->data->brother = child->next->data;
+      }
+      child = child->next;
     }
-    if (cur->children.size() > 1) {
-      cur->children[cur->children.size() - 1]->brother = nullptr;
-    }
-    for (int i = 0; i < cur->children.size(); i++) {
-      que.enqueue(cur->children[i]);
+    for (int i = l.size() - 1; i >= 0; i--) {
+      que.enqueue(l[i]->data);
     }
   }
   this->root = dummyRoot;
@@ -402,19 +404,8 @@ map<string, string> HtmlParser::_parseAttribute(const string &attr) {
   bool isQuote = false;
 
   for (int i = 0; i < attr.size(); i++) {
-    if (attr[i] == ' ') {
-      continue;
-    }
-    if (attr[i] == '=') {
-      isKey = false;
-      isValue = true;
-      continue;
-    }
-    if (attr[i] == '"') {
-      if (isQuote == false) {
-        isQuote = true;
-        continue;
-      } else {
+    if (isQuote) {
+      if (attr[i] == '"') {
         isQuote = false;
         res[key] = value;
         key = "";
@@ -422,7 +413,20 @@ map<string, string> HtmlParser::_parseAttribute(const string &attr) {
         isKey = true;
         isValue = false;
         continue;
+      } else {
+        value += attr[i];
+        continue;
       }
+    }
+    if (attr[i] == '"') {
+      isQuote = true;
+      continue;
+    } else if (attr[i] == ' ') {
+      continue;
+    } else if (attr[i] == '=') {
+      isKey = false;
+      isValue = true;
+      continue;
     }
     if (isKey) {
       key += attr[i];
@@ -474,8 +478,14 @@ Node<HtmlElem *> *HtmlParser::_traverse(HtmlElem *root, SelectorInfo *info) {
     if (match(cur, info)) {
       res->append(cur);
     }
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st.push(cur->children[i]);
+    Node<HtmlElem *> *node = cur->children->next;
+    List<Node<HtmlElem *> *> l;
+    while (node) {
+      l.append(node);
+      node = node->next;
+    }
+    for (int i = l.size() - 1; i >= 0; i--) {
+      st.push(l[i]->data);
     }
   }
   return res->head;
@@ -485,7 +495,7 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
   if (root == nullptr) {
     return nullptr;
   }
-  LinkList<HtmlElem *>* res = new LinkList<HtmlElem*>();
+  LinkList<HtmlElem *> *res = new LinkList<HtmlElem *>();
   LinkList<SelectorInfo *> selectors = CssSelector::parseSelector(s);
   if (selectors.size() == 1) {
     return _traverse(root, selectors[0]);
@@ -503,28 +513,37 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
     if (relation->type == GROUP) {
       if (match(cur, first) || match(cur, second)) {
         if (!exist(res, cur))
-        res->append(cur);
+          res->append(cur);
       }
     } else {
       if (match(cur, first)) {
         res->append(cur);
       }
     }
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st.push(cur->children[i]);
+
+    Node<HtmlElem *> *node = cur->children->next;
+    List<Node<HtmlElem *> *> l;
+    while (node) {
+      l.append(node);
+      node = node->next;
+    }
+    for (int i = l.size() - 1; i >= 0; i--) {
+      st.push(l[i]->data);
     }
   }
+
   if (relation->type == GROUP) {
     return res->head;
   }
-  while(!st.empty()){
+
+  while (!st.empty()) {
     st.pop();
   }
   // st = Stack<HtmlElem *>();
   LinkList<HtmlElem *> *ans = new LinkList<HtmlElem *>();
-  Node<HtmlElem*>* boss = res->head->next;
-  while(boss) {
-    // Traverse the 
+  Node<HtmlElem *> *boss = res->head->next;
+  while (boss) {
+    // Traverse the
     if (relation->type == DESCENDANT) {
       Node<HtmlElem *> *tempNode = _traverse(boss->data, second);
       Node<HtmlElem *> *cur = tempNode->next;
@@ -552,11 +571,20 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
         }
       }
     } else if (relation->type == CHILD) {
-      for (int j = 0; j < boss->data->children.size(); j++) {
-        if (match(boss->data->children[j], second)) {
-          ans->append(boss->data->children[j]);
+      Node<HtmlElem *> *child = boss->data->children;
+      child = child->next;
+      while (child) {
+        if (match(child->data, second)) {
+          ans->append(child->data);
         }
+        child = child->next;
       }
+
+      // for (int j = 0; j < boss->data->children.size(); j++) {
+      //   if (match(boss->data->children[j], second)) {
+      //     ans->append(boss->data->children[j]);
+      //   }
+      // }
     }
     boss = boss->next;
   }
@@ -644,7 +672,7 @@ void HtmlParser::debug(HtmlElem *ele) {
   cout << "ele.end_index: " << ele->end_index << endl;
   cout << "ele.selfClosing: " << ele->selfClosing << endl;
   cout << "ele.endTag: " << ele->endTag << endl;
-  cout << "ele.children.size(): " << ele->children.size() << endl;
+  // cout << "ele.children.size(): " << ele->children.size() << endl;
   cout << endl;
 }
 

@@ -1,3 +1,6 @@
+#ifndef STRING_CPP
+#define STRING_CPP
+
 #include "List.cpp"
 #include <cstring>
 #include <iostream>
@@ -86,3 +89,4 @@ string mergeSpaces(const string &input) {
 
   return result;
 }
+#endif

@@ -24,7 +24,8 @@ bool _matchTag(HtmlElem *element, const string &tagName) {
 bool _matchClass(HtmlElem *element, const string &className) {
   if (element == nullptr)
     return false;
-  List<string> classes = split(element->attrs["class"], ' ');
+  string classValue = element->attrs["class"];
+  List<string> classes = split(classValue, ' ');
   for (int i = 0; i < classes.size(); i++) {
     if (classes[i] == className)
       return true;
@@ -99,7 +100,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         part->value = className;
         info->parts.append(part);
         className = "";
-        part->type = CSS_NONE;
+        part = new SelectorPart();
         inClass = false;
         i--;
       } else {
@@ -120,7 +121,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         info->parts.append(part);
         attrName = "";
         attrValue = "";
-        part->type = CSS_NONE;
+        part = new SelectorPart();
         continue;
       }
       if (inAttrName) {
@@ -136,7 +137,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         part->value = tagName;
         info->parts.append(part);
         tagName = "";
-        part->type = CSS_NONE;
+        part = new SelectorPart();
         inID = false;
         i--;
       } else {
@@ -149,7 +150,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         part->value = tagName;
         info->parts.append(part);
         tagName = "";
-        part->type = CSS_NONE;
+        part = new SelectorPart();
         inName = false;
         i--;
       } else {
@@ -216,7 +217,7 @@ LinkList<SelectorInfo *> CssSelector::parseSelector(const string &selector) {
       begin_index = i + 1;
       Info.append(node);
       Info.append(relation);
-      relation->type = CSS_NONE;
+      relation = new SelectorInfo();
     }
   }
   if (begin_index < selector.size()) {

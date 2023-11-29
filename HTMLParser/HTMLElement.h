@@ -2,9 +2,12 @@
 #define HTMLELEMENT_H
 
 #include "../DataStructure/src/LinkedList.cpp"
+#include "../DataStructure/src/List.cpp"
+#include "../DataStructure/src/String.cpp"
 #include <map>
 #include <string>
 
+// #define List vector
 #define NORMAL_BLOCK 1
 #define NORMAL_INLINE 2
 #define SPECIAL_BLOCK 3
@@ -24,8 +27,8 @@ public:
   string tag = "";
   string attribute = "";
   map<string, string> attrs;
-  HtmlElem* father = nullptr;
-  HtmlElem* brother = nullptr;
+  HtmlElem *father = nullptr;
+  HtmlElem *brother = nullptr;
   int fatherType = -1;
   int SelfType = -1;
   bool selfClosing = false;
@@ -33,7 +36,7 @@ public:
   int start_index = -1;
   int end_index = -1;
 
-  LinkList<HtmlElem *> children;
+  Node<HtmlElem *> *children = new Node<HtmlElem *>();
 
   HtmlElem(){};
 
@@ -44,7 +47,14 @@ public:
     this->attribute = attribute;
   }
 
-  void append(HtmlElem *other) { children.append(other); }
+  void append(HtmlElem *other) {
+    Node<HtmlElem*>* dummyNode = children;
+    while (dummyNode->next)
+    {
+      dummyNode = dummyNode->next;
+    }
+    dummyNode->next = new Node<HtmlElem*>(other);
+  }
 };
 
 #endif

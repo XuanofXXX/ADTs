@@ -2,7 +2,6 @@
 #define HTMLPARSER_H
 
 #include <fstream>
-#include <vector>
 
 #include "CssSelector.h"
 #include "HtmlElement.h"
@@ -59,7 +58,7 @@ private:
   Node<HtmlElem *>* _traverse(HtmlElem* root, SelectorInfo* info);
 
   map<string, string> _parseAttribute(const string &attr);
-  
+
 };
 
 #endif

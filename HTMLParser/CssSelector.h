@@ -2,7 +2,7 @@
 #define CSSSELECTER_H
 
 #include "HtmlElement.h"
-#include "HtmlParser.h"
+// #include "HtmlParser.h"
 #include <fstream>
 #include <iostream>
 enum Type { TAG, CLASS, ID, ATTRIBUTE, DESCENDANT, GROUP, CHILD, BROTHER, FIRST_BROTHER, CSS_NONE };
