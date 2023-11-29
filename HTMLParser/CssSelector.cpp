@@ -1,13 +1,12 @@
 #ifndef CSSSELECTOR_CPP
 #define CSSSELECTOR_CPP
 
-#include "./CssSelector.h"
 #include "CssSelector.h"
 
 bool _matchTag(HtmlElem *element, const string &tagName) {
   if (element == nullptr)
     return false;
-  if (element->tag == "" || element->tag == "*" || element->tag == tagName)
+  if (element->tag == tagName || tagName == "*" || tagName == "")
     return true;
   return false;
 }
@@ -31,9 +30,8 @@ bool _matchID(HtmlElem *element, const string &idName) {
   return false;
 }
 
-bool _matchAttribute(HtmlElem *element,
-                                  const string &attributeName,
-                                  const string &attributeValue) {
+bool _matchAttribute(HtmlElem *element, const string &attributeName,
+                     const string &attributeValue) {
   if (element == nullptr)
     return false;
   auto it = element->attrs.find(attributeName);
@@ -44,24 +42,23 @@ bool _matchAttribute(HtmlElem *element,
   return false;
 }
 
-bool match(HtmlElem* ele, SelectorInfo* info){
-  for (int i = 0; i < info->parts.size(); i++)
-  {
-    if (info->parts[i]->type == ID){
+bool match(HtmlElem *ele, SelectorInfo *info) {
+  for (int i = 0; i < info->parts.size(); i++) {
+    if (info->parts[i]->type == ID) {
       if (!_matchID(ele, info->parts[i]->value))
         return false;
-    }
-    else if (info->parts[i]->type == CLASS){
+    } else if (info->parts[i]->type == CLASS) {
       if (!_matchClass(ele, info->parts[i]->value))
         return false;
-    }
-    else if (info->parts[i]->type == TAG){
+    } else if (info->parts[i]->type == TAG) {
       if (!_matchTag(ele, info->parts[i]->value))
         return false;
-    }
-    else if (info->parts[i]->type == ATTRIBUTE){
-      if (!_matchAttribute(ele, info->parts[i]->value, info->parts[i]->attributeValue))
+    } else if (info->parts[i]->type == ATTRIBUTE) {
+      if (!_matchAttribute(ele, info->parts[i]->value,
+                           info->parts[i]->attributeValue))
         return false;
+    } else {
+      return false;
     }
   }
   return true;
@@ -188,11 +185,11 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
   return info;
 }
 
-List<SelectorInfo*> CssSelector::parseSelector(const string &selector) {
-  List<SelectorInfo*> Info; // 使用列表存储解析后的选择器部分
+LinkList<SelectorInfo *> CssSelector::parseSelector(const string &selector) {
+  LinkList<SelectorInfo *> Info; // 使用列表存储解析后的选择器部分
   int begin_index = 0;
   int end_index = 0;
-  SelectorInfo* info = new SelectorInfo();
+  SelectorInfo *info = new SelectorInfo();
   for (int i = 0; i < selector.size(); i++) {
     if (selector[i] == ' ') {
       info->type = DESCENDANT;
@@ -203,13 +200,13 @@ List<SelectorInfo*> CssSelector::parseSelector(const string &selector) {
     } else if (selector[i] == '~') {
       info->type = BROTHER;
     } else if (selector[i] == '+') {
-      info->type = FIRST_CHILD;
+      info->type = FIRST_BROTHER;
     } else {
       end_index = i;
     }
     if (info->type != CSS_NONE) {
-      SelectorInfo* node = _parseNode(
-          selector.substr(begin_index, end_index - begin_index + 1));
+      SelectorInfo *node =
+          _parseNode(selector.substr(begin_index, end_index - begin_index + 1));
       begin_index = i + 1;
       Info.append(node);
       Info.append(info);

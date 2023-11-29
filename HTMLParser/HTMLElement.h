@@ -1,7 +1,7 @@
 #ifndef HTMLELEMENT_H
 #define HTMLELEMENT_H
 
-#include "../DataStructure/src/List.cpp"
+#include "../DataStructure/src/LinkedList.cpp"
 #include <map>
 #include <string>
 
@@ -21,17 +21,19 @@ using std::string;
 
 class HtmlElem {
 public:
-  string tag;
-  string attribute;
+  string tag = "";
+  string attribute = "";
   map<string, string> attrs;
-  int FatherType;
-  int SelfType;
+  HtmlElem* father = nullptr;
+  HtmlElem* brother = nullptr;
+  int fatherType = -1;
+  int SelfType = -1;
   bool selfClosing = false;
   bool endTag = false;
-  int start_index;
-  int end_index;
+  int start_index = -1;
+  int end_index = -1;
 
-  List<HtmlElem *> children;
+  LinkList<HtmlElem *> children;
 
   HtmlElem(){};
 

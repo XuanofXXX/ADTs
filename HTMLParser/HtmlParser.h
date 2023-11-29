@@ -2,11 +2,11 @@
 #define HTMLPARSER_H
 
 #include <fstream>
+#include <vector>
 
-#include "./HtmlElement.h"
-#include "../DataStructure/src/Stack.cpp"
-#include "../DataStructure/src/String.cpp"
-#include "../DataStructure/src/Queue.cpp"
+#include "CssSelector.h"
+#include "HtmlElement.h"
+#include "utils.h"
 
 using std::cout;
 using std::endl;
@@ -15,25 +15,15 @@ class HtmlParser {
 public:
   HtmlParser(){};
 
-  HtmlParser(string s) { this->doc = strip(s);};
+  HtmlParser(string s) { this->doc = strip(s); };
 
-  void init();
+  void parse();
 
-  void ReadHTML(string &html);
+  void readHTML(string &html);
 
-  void ReadFile(const string &filename);
+  void readfile(const string &filename);
 
-  string showSub(HtmlElem *const root);
-
-  string show(HtmlElem *const root);
-
-  string showText(HtmlElem *const root);
-
-  string OutHTML(const string &s);
-
-  string Text(const string &s);
-
-  List<HtmlElem*> CssSelect(const string &s, HtmlElem *root);
+  Node<HtmlElem *>* css(const string &s, HtmlElem *root);
 
   // List<HtmlElem*> XPathSelect(const string& path);
 
@@ -42,30 +32,34 @@ public:
   HtmlElem *getRoot();
 
   string getDoc();
-  
+
 private:
   HtmlElem *root;
+
   string doc;
 
-  HtmlElem *isComment(int i);
+  HtmlElem *_isComment(int i);
 
-  HtmlElem *isJavaScript(int i);
+  HtmlElem *_isJavaScript(int i);
 
-  HtmlElem *isCSS(int i);
+  HtmlElem *_isCSS(int i);
 
-  int isSelfClosing(const string &tag);
+  int _isSelfClosing(const string &tag);
 
-  int isInline(const string &tag);
+  int _isInline(const string &tag);
 
-  HtmlElem *parseTag(int i);
+  HtmlElem *_parseTag(int i);
 
-  bool checkNested(HtmlElem *child);
+  bool _checkNested(HtmlElem *child);
 
-  HtmlElem *parseContent(int i);
+  HtmlElem *_parseContent(int i);
 
-  void parseHtml();
+  void _parseHtml();
 
-  map<string, string> parseAttribute(const string &attr);
+  Node<HtmlElem *>* _traverse(HtmlElem* root, SelectorInfo* info);
+
+  map<string, string> _parseAttribute(const string &attr);
+  
 };
 
 #endif

@@ -5,7 +5,7 @@
 #include "HtmlParser.h"
 #include <fstream>
 #include <iostream>
-enum Type { TAG, CLASS, ID, ATTRIBUTE, DESCENDANT, GROUP, CHILD, BROTHER, FIRST_CHILD, CSS_NONE };
+enum Type { TAG, CLASS, ID, ATTRIBUTE, DESCENDANT, GROUP, CHILD, BROTHER, FIRST_BROTHER, CSS_NONE };
 
 struct SelectorPart {
   Type type = CSS_NONE;
@@ -17,9 +17,9 @@ struct SelectorPart {
 
 struct SelectorInfo {
   Type type = CSS_NONE;
-  List<SelectorPart*> parts; // 存储选择器的各个部分
+  LinkList<SelectorPart*> parts; // 存储选择器的各个部分
   SelectorInfo(): type(CSS_NONE){}
-  SelectorInfo(List<SelectorPart*> parts) : parts(parts) {}
+  SelectorInfo(LinkList<SelectorPart*> parts) : parts(parts) {}
   SelectorInfo(Type type) : type(type) {}
 };
 
@@ -35,6 +35,6 @@ namespace CssSelector {
   // 解析器辅助函数
   SelectorInfo* _parseNode(const string &selectorPart);
   
-  List<SelectorInfo*> parseSelector(const string &selector); // 解析选择器
+  LinkList<SelectorInfo*> parseSelector(const string &selector); // 解析选择器
 };
 #endif

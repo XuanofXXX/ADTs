@@ -1,6 +1,10 @@
-#include "./HtmlParser.h"
+#ifndef HTMLPARSER_CPP
+#define HTMLPARSER_CPP
 
-HtmlElem *HtmlParser::isComment(int i) {
+#include "HtmlParser.h"
+#include <memory>
+
+HtmlElem *HtmlParser::_isComment(int i) {
   /**
    * \@brief
    * \@param: s: string
@@ -26,7 +30,7 @@ HtmlElem *HtmlParser::isComment(int i) {
   return res;
 };
 
-HtmlElem *HtmlParser::isJavaScript(int i) {
+HtmlElem *HtmlParser::_isJavaScript(int i) {
   /**
    * @brief Determine whether the tag is a JavaScript or not
    * @param s: string
@@ -55,7 +59,7 @@ HtmlElem *HtmlParser::isJavaScript(int i) {
   return res;
 }
 
-HtmlElem *HtmlParser::isCSS(int i) {
+HtmlElem *HtmlParser::_isCSS(int i) {
   HtmlElem *res = new HtmlElem();
   res->tag = NONE;
   if (doc[i + 1] == 's' && doc[i + 2] == 't' && doc[i + 3] == 'y' &&
@@ -77,7 +81,7 @@ HtmlElem *HtmlParser::isCSS(int i) {
   return res;
 }
 
-int HtmlParser::isSelfClosing(const string &tag) {
+int HtmlParser::_isSelfClosing(const string &tag) {
   /**
    * @brief Determine whether the tag is a closing tag or not
    * @param s: string
@@ -121,7 +125,7 @@ int HtmlParser::isSelfClosing(const string &tag) {
   return -1;
 }
 
-int HtmlParser::isInline(const string &tag) {
+int HtmlParser::_isInline(const string &tag) {
   /**
    * @brief 判断给定的 HTML 标签是否为内联元素
    *
@@ -179,7 +183,7 @@ int HtmlParser::isInline(const string &tag) {
   return 0;
 }
 
-HtmlElem *HtmlParser::parseTag(int i) {
+HtmlElem *HtmlParser::_parseTag(int i) {
   /**
    * @brief Given a string and the index of "<". Return the HtmlElem with
    * tagName and tagContent(if had)
@@ -195,17 +199,17 @@ HtmlElem *HtmlParser::parseTag(int i) {
     res->endTag = true;
   }
 
-  HtmlElem *temp = isComment(i);
+  HtmlElem *temp = _isComment(i);
   if (temp->tag != NONE) {
     return temp;
   }
 
-  temp = isJavaScript(i);
+  temp = _isJavaScript(i);
   if (temp->tag != NONE) {
     return temp;
   }
 
-  temp = isCSS(i);
+  temp = _isCSS(i);
   if (temp->tag != NONE) {
     return temp;
   }
@@ -248,30 +252,30 @@ HtmlElem *HtmlParser::parseTag(int i) {
     attribute += doc[j];
   }
 
-  res->attrs = parseAttribute(res->attribute);
+  res->attrs = _parseAttribute(res->attribute);
 
-  res->SelfType = isInline(res->tag);
+  res->SelfType = _isInline(res->tag);
 
-  if (isSelfClosing(res->tag) == 1) { // Self Closing Tag
+  if (_isSelfClosing(res->tag) == 1) { // Self Closing Tag
     res->selfClosing = true;
   }
 
   return res;
 }
 
-bool HtmlParser::checkNested(HtmlElem *child) {
-  if (child->FatherType == NORMAL_BLOCK) {
+bool HtmlParser::_checkNested(HtmlElem *child) {
+  if (child->fatherType == NORMAL_BLOCK) {
     return true;
   }
 
-  if (child->FatherType == NORMAL_INLINE) {
+  if (child->fatherType == NORMAL_INLINE) {
     if (child->SelfType == NORMAL_INLINE or child->SelfType == SPECIAL_INLINE)
       return true;
     else
       return false;
   }
 
-  if (child->FatherType == SPECIAL_BLOCK) {
+  if (child->fatherType == SPECIAL_BLOCK) {
     if (child->SelfType == NORMAL_INLINE or child->SelfType == SPECIAL_INLINE) {
       return true;
     } else {
@@ -279,7 +283,7 @@ bool HtmlParser::checkNested(HtmlElem *child) {
     }
   }
 
-  if (child->FatherType == SPECIAL_INLINE) {
+  if (child->fatherType == SPECIAL_INLINE) {
     if (child->tag == "a")
       return false;
     else
@@ -288,7 +292,7 @@ bool HtmlParser::checkNested(HtmlElem *child) {
   return true;
 }
 
-HtmlElem *HtmlParser::parseContent(int i) {
+HtmlElem *HtmlParser::_parseContent(int i) {
   HtmlElem *res = new HtmlElem();
   res->start_index = i;
   res->end_index = doc.size();
@@ -296,8 +300,8 @@ HtmlElem *HtmlParser::parseContent(int i) {
 
   string content = "";
 
-  int index = i;
-  for (index; index < doc.size(); index++) {
+  // int index = i;
+  for (int index = i; index < doc.size(); index++) {
     if (doc[index] == '<') {
       res->end_index = index - 1;
       break;
@@ -310,7 +314,7 @@ HtmlElem *HtmlParser::parseContent(int i) {
   return res;
 }
 
-void HtmlParser::parseHtml() {
+void HtmlParser::_parseHtml() {
   /**
    * @brief Parse the whole HTML file
    * @param doc: string
@@ -321,7 +325,7 @@ void HtmlParser::parseHtml() {
   HtmlElem *dummyRoot = new HtmlElem;
   dummyRoot->tag = "ROOT";
   dummyRoot->SelfType = NORMAL_BLOCK;
-  dummyRoot->FatherType = NORMAL_BLOCK;
+  dummyRoot->fatherType = NORMAL_BLOCK;
   nodeStack.push(dummyRoot);
 
   int index = 0;
@@ -329,8 +333,9 @@ void HtmlParser::parseHtml() {
     HtmlElem *cur = nodeStack.top();
 
     if (doc[index] == '<') {
-      HtmlElem *newEle = parseTag(index); // <node>
-      newEle->FatherType = cur->SelfType;
+      HtmlElem *newEle = _parseTag(index); // <node>
+      newEle->fatherType = cur->SelfType;
+      newEle->father = cur;
 
       if (newEle->endTag) { // </node>
         string endtag = newEle->tag.substr(1, newEle->tag.length() - 1);
@@ -341,14 +346,13 @@ void HtmlParser::parseHtml() {
           index = newEle->end_index + 1;
           continue;
         } else { // parse error
-          // TODO: read incomplete Html file
           this->root = nullptr;
           return;
         }
       }
 
       if (!newEle->selfClosing) {
-        if (!checkNested(newEle)) {
+        if (!_checkNested(newEle)) {
           this->root = nullptr;
           return;
         }
@@ -361,17 +365,35 @@ void HtmlParser::parseHtml() {
       cur->children.append(newEle);
       index = newEle->end_index + 1;
     } else {
-      HtmlElem *newEle = parseContent(index); // content
-      newEle->FatherType = cur->SelfType;
+      HtmlElem *newEle = _parseContent(index); // content
+      newEle->fatherType = cur->SelfType;
       if (newEle->attribute != "")
         cur->children.append(newEle);
       index = newEle->end_index + 1;
     }
   }
+
+  Queue<HtmlElem *> que;
+  que.enqueue(dummyRoot);
+  while (!que.empty()) {
+    HtmlElem *cur = que.peek();
+    que.dequeue();
+    for (int i = 0; i < cur->children.size() - 1; i++) {
+      cur->children[i]->brother = cur->children[i + 1];
+
+      // cur->children[i]->brother = cur->children[i + 1];
+    }
+    if (cur->children.size() > 1) {
+      cur->children[cur->children.size() - 1]->brother = nullptr;
+    }
+    for (int i = 0; i < cur->children.size(); i++) {
+      que.enqueue(cur->children[i]);
+    }
+  }
   this->root = dummyRoot;
 }
 
-map<string, string> HtmlParser::parseAttribute(const string &attr) {
+map<string, string> HtmlParser::_parseAttribute(const string &attr) {
   map<string, string> res;
   string key = "";
   string value = "";
@@ -412,11 +434,11 @@ map<string, string> HtmlParser::parseAttribute(const string &attr) {
   return res;
 }
 
-void HtmlParser::init() { parseHtml(); }
+void HtmlParser::parse() { _parseHtml(); }
 
-void HtmlParser::ReadHTML(string &html) { this->doc = html; }
+void HtmlParser::readHTML(string &html) { this->doc = html; }
 
-void HtmlParser::ReadFile(const string &filename) {
+void HtmlParser::readfile(const string &filename) {
   /**
    * @brief Reading a file using its filename
    */
@@ -430,162 +452,124 @@ void HtmlParser::ReadFile(const string &filename) {
   file.close();
   string s = buffer.str();
   this->doc = s;
-  init();
+  parse();
 }
 
-string HtmlParser::showSub(HtmlElem *const root) {
-  string res = "";
-  Stack<HtmlElem *> st;
-  Stack<int> st_indent;
-  st_indent.push(-1);
-  st.push(root);
-  while (!st.empty()) {
-    HtmlElem *cur = st.top();
-    st.pop();
-    int num = st_indent.top();
-    st_indent.pop();
-    if (cur->tag == COMMENT or cur->tag == JAVASCRIPT or cur->tag == CSS)
-      continue;
-    for (int i = 0; i < num; i) {
-      res += '\t';
-    }
-    if (cur->tag == CONTENT)
-      res += cur->attribute + '\n';
-    else if (cur == root)
-      ;
-    else if (cur->selfClosing == true) {
-      res += "<" + cur->tag + cur->attribute + ">\n";
-    } else {
-      res += "<" + cur->tag + cur->attribute + ">\n";
-    }
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st_indent.push(num + 1);
-      st.push(cur->children[i]);
-    }
-  }
-  return res;
-}
-
-string HtmlParser::show(HtmlElem *const root) {
-  if (root == nullptr)
-    throw "Show Null pointer";
-  string res = "";
-  Stack<HtmlElem *> st;
-  Stack<int> st_indent;
-  string startTag = root->tag;
-  st_indent.push(0);
-  st.push(root);
-  while (!st.empty()) {
-    HtmlElem *cur = st.top();
-    st.pop();
-    int num = st_indent.top();
-    st_indent.pop();
-    if (cur->tag == COMMENT or cur->tag == JAVASCRIPT or cur->tag == CSS)
-      continue;
-    for (int i = 0; i < num; i++) {
-      res += '\t';
-    }
-    if (cur->tag == CONTENT)
-      res += cur->attribute + '\n';
-
-    else {
-      if (cur->selfClosing == true) {
-        res += "<" + cur->tag + cur->attribute + ">\n";
-      } else {
-        res += "<" + cur->tag + cur->attribute + ">\n";
-      }
-    }
-
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st_indent.push(num + 1);
-      st.push(cur->children[i]);
-    }
-  }
-  res += "</" + startTag + ">\n";
-  return res;
-}
-
-string HtmlParser::showText(HtmlElem *const root) {
-  if (root == nullptr)
-    throw "Show Null pointer for text!";
-  string res = "";
-  Stack<HtmlElem *> st;
-  st.push(root);
-  while (!st.empty()) {
-    HtmlElem *cur = st.top();
-    st.pop();
-    if (cur->tag == COMMENT or cur->tag == JAVASCRIPT or cur->tag == CSS)
-      continue;
-    if (cur->tag == CONTENT) {
-      if (cur->FatherType == NORMAL_INLINE or
-          cur->FatherType == SPECIAL_INLINE) {
-        res += cur->attribute + ' ';
-      } else {
-        res += cur->attribute + '\n';
-      }
-    }
-    for (int i = cur->children.size() - 1; i >= 0; i--) {
-      st.push(cur->children[i]);
-    }
-  }
-  return res;
-}
-
-string HtmlParser::OutHTML(const string &s) {
-  //
+Node<HtmlElem *> *HtmlParser::_traverse(HtmlElem *root, SelectorInfo *info) {
+  /**
+   * @brief Traverse the root, return a list contains all the elements that
+   * fit the selector info.
+   * @return a list contains target
+   */
   if (root == nullptr) {
-    return "Illegal HTML file";
+    return nullptr;
   }
-
-  if (s == "/") {
-    return showSub(root);
-  }
-
-  List<string> res;
-  string tmp = "";
-  for (int i = 0; i < s.size(); i++) {
-    if (s[i] == '/') {
-      if (tmp == "")
-        continue;
-      tmp = toLowerCase(tmp);
-      res.append(tmp);
-      tmp = "";
-    } else {
-      tmp += s[i];
+  LinkList<HtmlElem *> *res = new LinkList<HtmlElem *>();
+  Stack<HtmlElem *> st;
+  st.push(root);
+  HtmlElem *cur = nullptr;
+  while (!st.empty()) {
+    cur = st.top();
+    st.pop();
+    if (match(cur, info)) {
+      res->append(cur);
+    }
+    for (int i = cur->children.size() - 1; i >= 0; i--) {
+      st.push(cur->children[i]);
     }
   }
-  res.append(tmp);
-  HtmlElem *cur = root;
-  Queue<HtmlElem *> qe;
-  qe.enqueue(cur);
+  return res->head;
+}
 
+Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
+  if (root == nullptr) {
+    return nullptr;
+  }
+  LinkList<HtmlElem *> res;
+  LinkList<SelectorInfo *> selectors = CssSelector::parseSelector(s);
+  if (selectors.size() == 1) {
+    return _traverse(root, selectors[0]);
+  }
+  Stack<HtmlElem *> st;
+  st.push(root);
+
+  SelectorInfo *first = selectors[0];
+  SelectorInfo *relation = selectors[1];
+  SelectorInfo *second = selectors[2];
+
+  while (!st.empty()) {
+    HtmlElem *cur = st.top();
+    st.pop();
+    if (relation->type == GROUP) {
+      if (match(cur, first) || match(cur, second)) {
+        res.append(cur);
+      }
+    } else {
+      if (match(cur, first)) {
+        res.append(cur);
+      }
+    }
+    for (int i = cur->children.size() - 1; i >= 0; i--) {
+      st.push(cur->children[i]);
+    }
+  }
+  if (relation->type == GROUP) {
+    return res.head;
+  }
+  while(!st.empty()){
+    st.pop();
+  }
+  // st = Stack<HtmlElem *>();
+  LinkList<HtmlElem *> *ans = new LinkList<HtmlElem *>();
+  HtmlElem *boss = nullptr;
   for (int i = 0; i < res.size(); i++) {
-    string node = res[i];
-    bool found = false;
-    int size = qe.getSize();
-    for (int time = 0; time < size; time++) {
-      cur = qe.peek();
-      qe.dequeue();
-      for (int j = 0; j < cur->children.size(); j++) {
-        HtmlElem *Node = cur->children[j];
-        if (cur->children[j]->tag == node) {
-          found = true;
-          qe.enqueue(cur->children[j]);
+    boss = res[i];
+    if (relation->type == DESCENDANT) {
+      Node<HtmlElem *> *tempNode = _traverse(boss, second);
+      Node<HtmlElem *> *cur = tempNode->next;
+      while (cur) {
+        if (exist(ans, cur->data)) {
+          cur = cur->next;
+          continue;
+        } else {
+          ans->append(cur->data);
+        }
+        cur = cur->next;
+      }
+
+      // for (int j = 0; j < temp.size(); j++) {
+      //   if (exist(ans, temp[j])) {
+      //     continue;
+      //   } else {
+      //     ans.append(temp[j]);
+      //   }
+      // }
+    } else if (relation->type == BROTHER) {
+      HtmlElem *bro = boss->brother;
+      while (bro != nullptr) {
+        if (match(bro, second)) {
+          ans->append(bro->brother);
+        }
+        bro = bro->brother;
+      }
+    } else if (relation->type == FIRST_BROTHER) {
+      if (boss->brother != nullptr) {
+        if (match(boss->brother, second)) {
+          ans->append(boss->brother);
+        }
+      }
+    } else if (relation->type == CHILD) {
+      for (int j = 0; j < boss->children.size(); j++) {
+        if (match(boss->children[j], second)) {
+          ans->append(boss->children[j]);
         }
       }
     }
-    if (found == false)
-      return NONE;
   }
-  string ans = "";
-  while (!qe.empty()) {
-    cur = qe.peek();
-    qe.dequeue();
-    ans += show(cur);
-  }
-  return ans;
+  return ans->head;
 }
 
+/*
 List<HtmlElem *> selectXPath(const string &path) {
   List<HtmlElem *> result;
 
@@ -657,60 +641,7 @@ List<HtmlElem *> selectXPath(const string &path) {
 
   return result;
 }
-
-string HtmlParser::Text(const string &s) {
-  if (root == nullptr) {
-    return "Illegal HTML";
-  }
-
-  if (s == "/") {
-    return showText(root);
-  }
-
-  List<string> res;
-  string tmp = "";
-  for (int i = 0; i < s.size(); i++) {
-    if (s[i] == '/') {
-      if (tmp == "")
-        continue;
-      tmp = toLowerCase(tmp);
-      res.append(tmp);
-      tmp = "";
-    } else {
-      tmp += s[i];
-    }
-  }
-  res.append(tmp);
-  HtmlElem *cur = root;
-  Queue<HtmlElem *> qe;
-  qe.enqueue(cur);
-
-  for (int i = 0; i < res.size(); i++) {
-    string node = res[i];
-    bool found = false;
-    int size = qe.getSize();
-    for (int time = 0; time < size; time++) {
-      cur = qe.peek();
-      qe.dequeue();
-      for (int j = 0; j < cur->children.size(); j++) {
-        HtmlElem *Node = cur->children[j];
-        if (cur->children[j]->tag == node) {
-          found = true;
-          qe.enqueue(cur->children[j]);
-        }
-      }
-    }
-    if (found == false)
-      return NONE;
-  }
-  string ans = "";
-  while (!qe.empty()) {
-    cur = qe.peek();
-    qe.dequeue();
-    ans += showText(cur);
-  }
-  return ans;
-}
+*/
 
 void HtmlParser::debug(HtmlElem *ele) {
   cout << "ele.tag: " << ele->tag << endl;
@@ -727,76 +658,4 @@ HtmlElem *HtmlParser::getRoot() { return this->root; }
 
 string HtmlParser::getDoc() { return this->doc; }
 
-// List<HtmlElem*> HtmlParser::XPathSelect(const string& path) {
-//   List<HtmlElem*> result;
-
-//   // Parse the XPath path into a list of element selectors and operators.
-//   List<string> selectors;
-//   List<string> operators;
-//   string selector = "";
-//   for (char c : path) {
-//     if (c == '/') {
-//       if (!selector.empty()) {
-//         selectors.append(selector);
-//         selector = "";
-//       }
-//       operators.append("/");
-//     } else if (c == '@') {
-//       operators.append("@");
-//     } else {
-//       selector += c;
-//     }
-//   }
-//   if (!selector.empty()) {
-//     selectors.append(selector);
-//   }
-
-//   // Start from the root element.
-//   Queue<HtmlElem*> queue;
-//   queue.enqueue(root);
-
-//   // Traverse the elements tree.
-//   for (int i = 0; i < selectors.size(); i++) {
-//     string selector = selectors[i];
-//     string op = operators[i];
-//     int size = queue.getSize();
-//     for (int j = 0; j < size; j++) {
-//       HtmlElem* elem = queue.peek();
-//       queue.dequeue();
-//       if (op == "/") {
-//         for (HtmlElem* child : elem->children) {
-//           if (child->tag == selector) {
-//             queue.enqueue(child);
-//           }
-//         }
-//       } else if (op == "//") {
-//         for (HtmlElem* child : elem->children) {
-//           if (child->tag == selector) {
-//             result.append(child);
-//           }
-//           queue.enqueue(child);
-//         }
-//       } else if (op == ".") {
-//         if (elem->tag == selector) {
-//           result.append(elem);
-//         }
-//       } else if (op == "..") {
-//         if (elem->parent && elem->parent->tag == selector) {
-//           result.push_back(elem->parent);
-//         }
-//       } else if (op == "@") {
-//         if (elem->attributes.count(selector)) {
-//           // Create a new HtmlElem to represent the attribute.
-//           HtmlElem* attr = new HtmlElem;
-//           attr->tag = selector;
-//           attr->text = elem->attributes[selector];
-//           result.push_back(attr);
-//         }
-//       }
-//     }
-//   }
-
-//   return result;
-// }
-}
-;
+#endif
