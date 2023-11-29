@@ -485,7 +485,7 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
   if (root == nullptr) {
     return nullptr;
   }
-  LinkList<HtmlElem *> res;
+  LinkList<HtmlElem *>* res = new LinkList<HtmlElem*>();
   LinkList<SelectorInfo *> selectors = CssSelector::parseSelector(s);
   if (selectors.size() == 1) {
     return _traverse(root, selectors[0]);
@@ -502,11 +502,12 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
     st.pop();
     if (relation->type == GROUP) {
       if (match(cur, first) || match(cur, second)) {
-        res.append(cur);
+        if (!exist(res, cur))
+        res->append(cur);
       }
     } else {
       if (match(cur, first)) {
-        res.append(cur);
+        res->append(cur);
       }
     }
     for (int i = cur->children.size() - 1; i >= 0; i--) {
@@ -514,18 +515,18 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
     }
   }
   if (relation->type == GROUP) {
-    return res.head;
+    return res->head;
   }
   while(!st.empty()){
     st.pop();
   }
   // st = Stack<HtmlElem *>();
   LinkList<HtmlElem *> *ans = new LinkList<HtmlElem *>();
-  HtmlElem *boss = nullptr;
-  for (int i = 0; i < res.size(); i++) {
-    boss = res[i];
+  Node<HtmlElem*>* boss = res->head->next;
+  while(boss) {
+    // Traverse the 
     if (relation->type == DESCENDANT) {
-      Node<HtmlElem *> *tempNode = _traverse(boss, second);
+      Node<HtmlElem *> *tempNode = _traverse(boss->data, second);
       Node<HtmlElem *> *cur = tempNode->next;
       while (cur) {
         if (exist(ans, cur->data)) {
@@ -536,16 +537,8 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
         }
         cur = cur->next;
       }
-
-      // for (int j = 0; j < temp.size(); j++) {
-      //   if (exist(ans, temp[j])) {
-      //     continue;
-      //   } else {
-      //     ans.append(temp[j]);
-      //   }
-      // }
     } else if (relation->type == BROTHER) {
-      HtmlElem *bro = boss->brother;
+      HtmlElem *bro = boss->data->brother;
       while (bro != nullptr) {
         if (match(bro, second)) {
           ans->append(bro->brother);
@@ -553,18 +546,19 @@ Node<HtmlElem *> *HtmlParser::css(const string &s, HtmlElem *root) {
         bro = bro->brother;
       }
     } else if (relation->type == FIRST_BROTHER) {
-      if (boss->brother != nullptr) {
-        if (match(boss->brother, second)) {
-          ans->append(boss->brother);
+      if (boss->data->brother != nullptr) {
+        if (match(boss->data->brother, second)) {
+          ans->append(boss->data->brother);
         }
       }
     } else if (relation->type == CHILD) {
-      for (int j = 0; j < boss->children.size(); j++) {
-        if (match(boss->children[j], second)) {
-          ans->append(boss->children[j]);
+      for (int j = 0; j < boss->data->children.size(); j++) {
+        if (match(boss->data->children[j], second)) {
+          ans->append(boss->data->children[j]);
         }
       }
     }
+    boss = boss->next;
   }
   return ans->head;
 }

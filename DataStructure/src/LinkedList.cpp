@@ -205,6 +205,19 @@ public:
     dataSize = 0;
   }
 
+  Elemtype at(int index) {
+    if (index >= size() || index < -size())
+      throw "index out of range";
+    if (index < 0)
+      index += size();
+    Node<Elemtype> *cur = head;
+    cur = cur->next;
+    while (index--) {
+      cur = cur->next;
+    }
+    return cur->data;
+  }
+
   Elemtype operator[](int index) {
     if (index >= size() || index < -size())
       throw "index out of range";

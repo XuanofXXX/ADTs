@@ -16,7 +16,7 @@ string Layout::showSub(HtmlElem *const root) {
     st_indent.pop();
     if (cur->tag == COMMENT or cur->tag == JAVASCRIPT or cur->tag == CSS)
       continue;
-    for (int i = 0; i < num; i) {
+    for (int i = 0; i < num; i++) {
       res += '\t';
     }
     if (cur->tag == CONTENT)
@@ -101,14 +101,14 @@ string Layout::showText(HtmlElem *const root) {
   return res;
 }
 
-string Layout::OutHTML(const string &s) {
+string Layout::OutHTML(HtmlElem* root, const string &s) {
   //
   if (root == nullptr) {
     return "Illegal HTML file";
   }
 
   if (s == "/") {
-    return showSub(root);
+    return Layout::showSub(root);
   }
 
   List<string> res;
@@ -157,6 +157,10 @@ string Layout::OutHTML(const string &s) {
 }
 
 string Layout::Text(HtmlElem* root, const string &s) {
+  /**
+   * @brief parse Xpath.
+   */
+
   if (root == nullptr) {
     return "Illegal HTML";
   }
@@ -191,7 +195,7 @@ string Layout::Text(HtmlElem* root, const string &s) {
       cur = qe.peek();
       qe.dequeue();
       for (int j = 0; j < cur->children.size(); j++) {
-        HtmlElem *Node = cur->children[j];
+        // HtmlElem *Node = cur->children[j];
         if (cur->children[j]->tag == node) {
           found = true;
           qe.enqueue(cur->children[j]);

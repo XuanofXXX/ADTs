@@ -6,8 +6,18 @@
 bool _matchTag(HtmlElem *element, const string &tagName) {
   if (element == nullptr)
     return false;
-  if (element->tag == tagName || tagName == "*" || tagName == "")
+  if (element->tag == tagName)
     return true;
+  if (tagName == "*" || tagName == "") {
+    if (element->endTag == true || element->tag == "ROOT" ||
+        element->tag == CONTENT || element->tag == COMMENT ||
+        element->tag == JAVASCRIPT || element->tag == CSS ||
+        element->tag == NONE) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   return false;
 }
 
@@ -77,6 +87,10 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
 
   string attrName = "", attrValue = "", className = "", tagName = "";
 
+  if (simple_part[0] == '.' || simple_part[0] == '#' || simple_part[0] == '[') {
+    inName = false;
+  }
+
   for (int i = 0; i < simple_part.size(); i++) {
     if (inClass) {
       if (simple_part[i] == '.' || simple_part[i] == '#' ||
@@ -85,17 +99,9 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         part->value = className;
         info->parts.append(part);
         className = "";
-        part = new SelectorPart();
+        part->type = CSS_NONE;
         inClass = false;
         i--;
-        // if (simple_part[i] == '.')
-        //   inClass = true;
-        // if (simple_part[i] == '#')
-        //   inID = true;
-        // if (simple_part[i] == '[') {
-        //   inAttr = true;
-        //   inAttrName = true;
-        // }
       } else {
         className += simple_part[i];
       }
@@ -114,7 +120,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         info->parts.append(part);
         attrName = "";
         attrValue = "";
-        part = new SelectorPart();
+        part->type = CSS_NONE;
         continue;
       }
       if (inAttrName) {
@@ -130,7 +136,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         part->value = tagName;
         info->parts.append(part);
         tagName = "";
-        part = new SelectorPart();
+        part->type = CSS_NONE;
         inID = false;
         i--;
       } else {
@@ -143,7 +149,7 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         part->value = tagName;
         info->parts.append(part);
         tagName = "";
-        part = new SelectorPart();
+        part->type = CSS_NONE;
         inName = false;
         i--;
       } else {
@@ -189,28 +195,28 @@ LinkList<SelectorInfo *> CssSelector::parseSelector(const string &selector) {
   LinkList<SelectorInfo *> Info; // 使用列表存储解析后的选择器部分
   int begin_index = 0;
   int end_index = 0;
-  SelectorInfo *info = new SelectorInfo();
+  SelectorInfo *relation = new SelectorInfo();
   for (int i = 0; i < selector.size(); i++) {
     if (selector[i] == ' ') {
-      info->type = DESCENDANT;
+      relation->type = DESCENDANT;
     } else if (selector[i] == '>') {
-      info->type = CHILD;
+      relation->type = CHILD;
     } else if (selector[i] == ',') {
-      info->type = GROUP;
+      relation->type = GROUP;
     } else if (selector[i] == '~') {
-      info->type = BROTHER;
+      relation->type = BROTHER;
     } else if (selector[i] == '+') {
-      info->type = FIRST_BROTHER;
+      relation->type = FIRST_BROTHER;
     } else {
       end_index = i;
     }
-    if (info->type != CSS_NONE) {
+    if (relation->type != CSS_NONE) {
       SelectorInfo *node =
           _parseNode(selector.substr(begin_index, end_index - begin_index + 1));
       begin_index = i + 1;
       Info.append(node);
-      Info.append(info);
-      info = new SelectorInfo();
+      Info.append(relation);
+      relation->type = CSS_NONE;
     }
   }
   if (begin_index < selector.size()) {
