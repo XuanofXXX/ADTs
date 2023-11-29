@@ -89,4 +89,84 @@ string mergeSpaces(const string &input) {
 
   return result;
 }
+
+bool contain(const string &s1, const string &s2){
+  /**
+   * @brief Check if s1 contains s2
+   * 
+   * @param s1 
+   * @param s2 
+   * @return true 
+   * @return false 
+   */
+  // Use KMP algorithm
+  int n = s1.size(), m = s2.size();
+  int *next = new int[m];
+  next[0] = -1;
+  int i = 0, j = -1;
+  while (i < m) {
+    if (j == -1 || s2[i] == s2[j]) {
+      i++;
+      j++;
+      next[i] = j;
+    } else {
+      j = next[j];
+    }
+  }
+  i = 0, j = 0;
+  while (i < n && j < m) {
+    if (j == -1 || s1[i] == s2[j]) {
+      i++;
+      j++;
+    } else {
+      j = next[j];
+    }
+  }
+  delete[] next;
+  return j == m;
+}
+
+bool begin_with(const string &s1, const string &s2) {
+  /**
+   * @brief Check if s1 begins with s2
+   * 
+   * @param s1 
+   * @param s2 
+   * @return true 
+   * @return false 
+   */
+  if (s1.size() < s2.size()) {
+    return false;
+  }
+  for (int i = 0; i < s2.size(); i++) {
+    if (s1[i] != s2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool end_with(const string &s1, const string &s2) {
+  /**
+   * @brief Check if s1 ends with s2
+   * 
+   * @param s1 
+   * @param s2 
+   * @return true 
+   * @return false 
+   */
+  if (s1.size() < s2.size()) {
+    return false;
+  }
+  int i = s1.size() - 1, j = s2.size() - 1;
+  while (j >= 0) {
+    if (s1[i] != s2[j]) {
+      return false;
+    }
+    i--;
+    j--;
+  }
+  return true;
+}
+
 #endif

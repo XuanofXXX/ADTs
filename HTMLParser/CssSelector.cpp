@@ -42,13 +42,25 @@ bool _matchID(HtmlElem *element, const string &idName) {
 }
 
 bool _matchAttribute(HtmlElem *element, const string &attributeName,
-                     const string &attributeValue) {
+                     const string &attributeValue, AttrType type) {
+
   if (element == nullptr)
     return false;
   auto it = element->attrs.find(attributeName);
   if (it != element->attrs.end()) {
-    if (attributeValue == "" || it->second == attributeValue)
-      return true;
+    if (type == NORMAL) {
+      if (attributeValue == "" || it->second == attributeValue)
+        return true;
+    } else if (type == CONTAIN) {
+      if (contain(element->attrs[attributeName], attributeValue))
+        return true;
+    } else if (type == BEGIN) {
+      if (begin_with(element->attrs[attributeName], attributeValue))
+        return true;
+    } else if (type == END) {
+      if (end_with(element->attrs[attributeName], attributeValue))
+        return true;
+    }
   }
   return false;
 }
@@ -66,7 +78,8 @@ bool match(HtmlElem *ele, SelectorInfo *info) {
         return false;
     } else if (info->parts[i]->type == ATTRIBUTE) {
       if (!_matchAttribute(ele, info->parts[i]->value,
-                           info->parts[i]->attributeValue))
+                           info->parts[i]->attributeValue,
+                           info->parts[i]->attrType))
         return false;
     } else {
       return false;
@@ -107,6 +120,17 @@ SelectorInfo *CssSelector::_parseNode(const string &simple_part) {
         className += simple_part[i];
       }
     } else if (inAttr) {
+      if (simple_part[i] == '~') {
+        part->attrType = CONTAIN;
+        continue;
+      } else if (simple_part[i] == '|') {
+        part->attrType = BEGIN;
+        continue;
+      } else if (simple_part[i] == '$') {
+        part->attrType = END;
+        continue;
+      }
+
       if (simple_part[i] == '=') {
         inAttrName = false;
         inAttrValue = true;
@@ -197,15 +221,21 @@ LinkList<SelectorInfo *> CssSelector::parseSelector(const string &selector) {
   int begin_index = 0;
   int end_index = 0;
   SelectorInfo *relation = new SelectorInfo();
+  bool isQuote = false;
   for (int i = 0; i < selector.size(); i++) {
-    if (selector[i] == ' ') {
+    if (selector[i] == '[') {
+      isQuote = true;
+    } else if (selector[i] == ']') {
+      isQuote = false;
+    } else if (selector[i] == ' ') {
       relation->type = DESCENDANT;
     } else if (selector[i] == '>') {
       relation->type = CHILD;
     } else if (selector[i] == ',') {
       relation->type = GROUP;
     } else if (selector[i] == '~') {
-      relation->type = BROTHER;
+      if (!isQuote)
+        relation->type = BROTHER;
     } else if (selector[i] == '+') {
       relation->type = FIRST_BROTHER;
     } else {

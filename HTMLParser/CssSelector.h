@@ -8,6 +8,9 @@
 enum Type { TAG, CLASS, ID, ATTRIBUTE, DESCENDANT, GROUP, CHILD, BROTHER, FIRST_BROTHER, CSS_NONE };
 
 enum AttrType {NORMAL, CONTAIN, BEGIN, END};
+// CONTAIN: [attr ~= value]
+// BEGIN:   [attr |= value]
+// END:     [attr $= value]
 
 struct SelectorPart {
   Type type = CSS_NONE;
