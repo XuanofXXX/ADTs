@@ -15,4 +15,5 @@ test*
 build/
 
 .vscode/
+.idea/
 .history/
