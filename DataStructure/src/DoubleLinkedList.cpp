@@ -1,20 +1,20 @@
 #pragma once
 // TODO: Complete the DoubleLinkedList class
+
+template <typename T>
+struct DoubleLinkedNode
+{
+  DoubleLinkedNode *prev;
+  Node *next;
+  T data;
+};
+
 class DoubleLinkedList
 {
 private:
-    template <typename T>
-    struct Node
-    {
-        Node *prev;
-        Node *next;
-        T data;
-    };
-    // Node* head;
-
 public:
-    DoubleLinkedList(/* args */);
-    ~DoubleLinkedList();
+  DoubleLinkedList(/* args */);
+  ~DoubleLinkedList();
 };
 
 DoubleLinkedList::DoubleLinkedList(/* args */)

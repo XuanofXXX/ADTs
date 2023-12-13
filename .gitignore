@@ -3,14 +3,18 @@
 *.txt
 *.zip
 *.[oa]
+
 .DS_Store
 !CMakeLists.txt
+Good Html/
 a.out
 test*
 **/test*
 *.dSYM
 **/*.dSYM
 build/
+HTML
 
 .vscode/
+.idea/
 .history/
