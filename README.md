@@ -18,6 +18,7 @@ The followings are located in `/DataStructure/` directory.
 - Queue
 - Stack
 - String methods
+- TreeTraverse methods, including iteration and recursion of preorder, inorder, postorder.
 
 ## 2. Labs
 ### 2.1 String operation
@@ -33,4 +34,5 @@ in `lab1.cpp`, the interface shows all the functions I implemented, which includ
 - **Support Chinese!!!**
 
 ## 3. HtmlParser
-in `HtmlParser.cpp`,`lab2.cpp`, we
+Please move to [`/HTML_Parser/`](https://github.com/XuanofXXX/HTML_Parser) directory.
+
