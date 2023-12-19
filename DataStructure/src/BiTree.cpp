@@ -100,3 +100,34 @@ void PostOrderTraverse_recursion(BiTreeNode *root, void (*visit)(T)) {
   PostOrderTraverse_recursion(root->rchild, visit);
   visit(root->data);
 }
+
+void insertBiSearchTree(BiTreeNode *root, T val){
+  /**
+   * @brief insert an element in a biSearchTree.
+   * 
+   */
+  if (root == nullptr){
+    return ;
+  }
+  BiTreeNode *cur = root;
+  while (cur)
+  {
+    if (cur->data >= val){
+      if (cur->lchild == nullptr){
+        cur->lchild = new BiTreeNode;
+        cur->lchild->data = val;
+        return;
+      }else{
+        cur = cur->lchild;
+      }
+    }else{
+      if(cur->rchild == nullptr){
+        cur->rchild = new BiTreeNode;
+        cur->rchild->data = val;
+        return;
+      }else{
+        cur = cur->rchild;
+      }
+    }
+  }
+}
