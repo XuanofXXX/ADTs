@@ -191,13 +191,14 @@ public:
   }
 
   void clear() {
+    /**
+     * @brief  clear all the elements but not delete them
+     *
+     */
     Node<Elemtype> *cur = head;
     while (cur->next) {
-      Node<Elemtype> *next = cur->next;
-      delete cur;
-      cur = next;
+      cur = cur->next;
     }
-    delete head;
     head = new Node<Elemtype>();
     if (head == nullptr) {
       throw "Failed to allocate memory";
